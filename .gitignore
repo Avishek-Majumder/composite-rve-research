@@ -39,8 +39,10 @@ meshes/*
 # Generated simulation results
 results/raw/*
 !results/raw/.gitkeep
+!results/raw/01_mesh_convergence_runs.csv
 results/processed/*
 !results/processed/.gitkeep
+!results/processed/01_mesh_convergence_summary.csv
 
 # Runtime logs
 logs/*
