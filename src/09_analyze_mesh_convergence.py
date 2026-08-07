@@ -68,6 +68,44 @@ def main() -> None:
         for row in rows
     ]
 
+    refined_cell_counts = cell_counts[1:]
+
+    matrix_min_changes = [
+        float(
+            row[
+                "matrix_sigma_xx_min_successive_difference_pct"
+            ]
+        )
+        for row in rows[1:]
+    ]
+
+    matrix_max_changes = [
+        float(
+            row[
+                "matrix_sigma_xx_max_successive_difference_pct"
+            ]
+        )
+        for row in rows[1:]
+    ]
+
+    particle_min_changes = [
+        float(
+            row[
+                "particle_sigma_xx_min_successive_difference_pct"
+            ]
+        )
+        for row in rows[1:]
+    ]
+
+    particle_max_changes = [
+        float(
+            row[
+                "particle_sigma_xx_max_successive_difference_pct"
+            ]
+        )
+        for row in rows[1:]
+    ]
+
     fig, ax = plt.subplots(
         figsize=(7.0, 4.8),
         constrained_layout=True,
@@ -129,6 +167,60 @@ def main() -> None:
 
     plt.close(particle_fig)
 
+    stress_output_path = Path(
+        "figures/07_local_stress_convergence.png"
+    )
+
+    stress_fig, stress_ax = plt.subplots(
+        figsize=(7.0, 4.8),
+        constrained_layout=True,
+    )
+
+    stress_ax.plot(
+        refined_cell_counts,
+        matrix_min_changes,
+        marker="o",
+        label="Matrix sigma_xx min",
+    )
+
+    stress_ax.plot(
+        refined_cell_counts,
+        matrix_max_changes,
+        marker="o",
+        label="Matrix sigma_xx max",
+    )
+
+    stress_ax.plot(
+        refined_cell_counts,
+        particle_min_changes,
+        marker="o",
+        label="Particle sigma_xx min",
+    )
+
+    stress_ax.plot(
+        refined_cell_counts,
+        particle_max_changes,
+        marker="o",
+        label="Particle sigma_xx max",
+    )
+
+    stress_ax.set_xlabel("Total cell count")
+    stress_ax.set_ylabel("Successive difference (%)")
+    stress_ax.set_title(
+        "Local Stress Extrema Mesh Sensitivity"
+    )
+
+    stress_ax.set_yscale("log")
+    stress_ax.grid(True)
+    stress_ax.legend()
+
+    stress_fig.savefig(
+        stress_output_path,
+        dpi=300,
+    )
+
+    plt.close(stress_fig)
+
     print("Mesh-convergence analysis input: PASSED")
     print("Run count:", len(rows))
     print("Cell counts:", cell_counts)
@@ -136,6 +228,7 @@ def main() -> None:
     print("Particle-fraction errors:", particle_fraction_errors)
     print("Created:", output_path)
     print("Created:", particle_output_path)
+    print("Created:", stress_output_path)
 
 
 if __name__ == "__main__":
