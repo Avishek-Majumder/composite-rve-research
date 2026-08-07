@@ -1,0 +1,20 @@
+model:
+  name: homogeneous_elasticity_verification
+  dimension: 2
+  assumption: plane_stress
+
+geometry:
+  width: 1.0
+  height: 1.0
+
+material:
+  youngs_modulus: 1000.0
+  poissons_ratio: 0.30
+
+loading:
+  prescribed_x_displacement: 0.01
+
+mesh:
+  nx: 8
+  ny: 8
+  cell_type: triangle
