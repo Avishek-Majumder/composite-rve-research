@@ -56,3 +56,7 @@ logs/*
 *.vtu
 *.pvtu
 *.pvd
+
+# Generated simulation figures
+figures/*
+!figures/.gitkeep
