@@ -1,0 +1,26 @@
+model:
+  name: single_particle_composite_verification
+  dimension: 2
+  assumption: plane_stress
+  interface: perfect_bonding
+
+geometry:
+  width: 1.0
+  height: 1.0
+
+matrix:
+  youngs_modulus: 1000.0
+  poissons_ratio: 0.30
+
+particle:
+  youngs_modulus: 10000.0
+  poissons_ratio: 0.25
+  center_x: 0.50
+  center_y: 0.50
+  radius: 0.20
+
+loading:
+  prescribed_x_displacement: 0.01
+
+mesh:
+  global_size: 0.05
