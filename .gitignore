@@ -44,6 +44,7 @@ results/processed/*
 !results/processed/.gitkeep
 !results/processed/01_mesh_convergence_summary.csv
 !results/processed/02_m3_mesh_convergence_verification.md
+!results/processed/03_m4_parameterization_audit.md
 
 # Runtime logs
 logs/*
