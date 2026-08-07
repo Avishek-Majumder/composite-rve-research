@@ -1,5 +1,6 @@
 """Solve the first single-particle 2D composite elasticity model."""
 
+import argparse
 from pathlib import Path
 import math
 
@@ -17,6 +18,20 @@ from petsc4py import PETSc
 
 def main() -> None:
     """Solve single-particle composite uniaxial tension."""
+
+    parser = argparse.ArgumentParser(
+        description="Solve the single-particle composite elasticity model."
+    )
+    parser.add_argument(
+        "--mesh-size",
+        type=float,
+        default=None,
+        help=(
+            "Override configs/02_single_particle.yaml mesh.global_size "
+            "for this run only."
+        ),
+    )
+    args = parser.parse_args()
 
     # ------------------------------------------------------------------
     # 1. Load configuration
@@ -43,7 +58,14 @@ def main() -> None:
         config["loading"]["prescribed_x_displacement"]
     )
 
-    mesh_size = float(config["mesh"]["global_size"])
+    mesh_size = (
+        float(config["mesh"]["global_size"])
+        if args.mesh_size is None
+        else float(args.mesh_size)
+    )
+
+    if mesh_size <= 0.0:
+        raise ValueError("Mesh size must be positive.")
 
     # ------------------------------------------------------------------
     # 2. Create tagged matrix + particle mesh with Gmsh
@@ -900,6 +922,8 @@ def main() -> None:
         print("Matrix area:", matrix_area)
         print("Particle area:", particle_area)
         print("Total area:", area)
+        print("Mesh size:", mesh_size)
+        print("Total cell count:", total_cell_count)
         print(
             "Analytical particle fraction:",
             analytical_particle_fraction,
