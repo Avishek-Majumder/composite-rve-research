@@ -63,6 +63,11 @@ def main() -> None:
         for row in rows
     ]
 
+    particle_fraction_errors = [
+        float(row["particle_fraction_error"])
+        for row in rows
+    ]
+
     fig, ax = plt.subplots(
         figsize=(7.0, 4.8),
         constrained_layout=True,
@@ -94,11 +99,43 @@ def main() -> None:
 
     plt.close(fig)
 
+    particle_output_path = Path(
+        "figures/06_particle_fraction_error_convergence.png"
+    )
+
+    particle_fig, particle_ax = plt.subplots(
+        figsize=(7.0, 4.8),
+        constrained_layout=True,
+    )
+
+    particle_ax.plot(
+        cell_counts,
+        particle_fraction_errors,
+        marker="o",
+    )
+
+    particle_ax.set_xlabel("Total cell count")
+    particle_ax.set_ylabel("Particle-fraction absolute error")
+    particle_ax.set_title(
+        "Particle Geometry Representation Convergence"
+    )
+
+    particle_ax.grid(True)
+
+    particle_fig.savefig(
+        particle_output_path,
+        dpi=300,
+    )
+
+    plt.close(particle_fig)
+
     print("Mesh-convergence analysis input: PASSED")
     print("Run count:", len(rows))
     print("Cell counts:", cell_counts)
     print("Effective moduli:", effective_moduli)
+    print("Particle-fraction errors:", particle_fraction_errors)
     print("Created:", output_path)
+    print("Created:", particle_output_path)
 
 
 if __name__ == "__main__":
