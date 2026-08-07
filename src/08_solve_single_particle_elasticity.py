@@ -5,9 +5,10 @@ import math
 
 import gmsh
 import numpy as np
+import pyvista as pv
 import ufl
 import yaml
-from dolfinx import fem, mesh
+from dolfinx import fem, mesh, plot
 from dolfinx.fem.petsc import LinearProblem
 from dolfinx.io import gmsh as gmshio
 from mpi4py import MPI
@@ -357,7 +358,76 @@ def main() -> None:
     uh.x.scatter_forward()
 
     # ------------------------------------------------------------------
-    # 9. Extract displacement-component ranges
+    # 9. Visualize solved displacement field in serial runs
+    # ------------------------------------------------------------------
+    if domain.comm.size == 1:
+        topology, cell_types, geometry = plot.vtk_mesh(V)
+
+        displacement_grid = pv.UnstructuredGrid(
+            topology,
+            cell_types,
+            geometry,
+        )
+
+        displacement_2d = uh.x.array.reshape(
+            geometry.shape[0],
+            gdim,
+        )
+
+        displacement_3d = np.zeros(
+            (geometry.shape[0], 3),
+            dtype=displacement_2d.dtype,
+        )
+
+        displacement_3d[:, :gdim] = displacement_2d
+
+        displacement_magnitude = np.linalg.norm(
+            displacement_2d,
+            axis=1,
+        )
+
+        displacement_grid.point_data[
+            "Displacement"
+        ] = displacement_3d
+
+        displacement_grid.point_data[
+            "Displacement magnitude"
+        ] = displacement_magnitude
+
+        warped_grid = displacement_grid.warp_by_vector(
+            "Displacement",
+            factor=10.0,
+        )
+
+        output_file = Path(
+            "figures/03_single_particle_displacement.png"
+        )
+
+        plotter = pv.Plotter(
+            off_screen=True,
+            window_size=(1000, 900),
+        )
+
+        plotter.add_mesh(
+            warped_grid,
+            scalars="Displacement magnitude",
+            show_edges=True,
+            line_width=0.4,
+            scalar_bar_args={
+                "title": "Displacement magnitude",
+            },
+        )
+
+        plotter.view_xy()
+        plotter.enable_parallel_projection()
+
+        plotter.show(
+            screenshot=str(output_file),
+            auto_close=True,
+        )
+
+    # ------------------------------------------------------------------
+    # 10. Extract displacement-component ranges
     # ------------------------------------------------------------------
     _, ux_to_parent = V.sub(0).collapse()
     _, uy_to_parent = V.sub(1).collapse()
@@ -403,6 +473,260 @@ def main() -> None:
         particle_mu,
         particle_lambda_ps,
     )
+
+    # Cell-wise axial stress field for visualization
+    stress_space = fem.functionspace(
+        domain,
+        ("Discontinuous Lagrange", 0),
+    )
+
+    sigma_xx_h = fem.Function(stress_space)
+
+    matrix_cells = cell_tags.find(matrix_tag)
+    particle_cells = cell_tags.find(particle_tag)
+
+    matrix_sigma_xx_expression = fem.Expression(
+        matrix_stress[0, 0],
+        stress_space.element.interpolation_points,
+    )
+
+    particle_sigma_xx_expression = fem.Expression(
+        particle_stress[0, 0],
+        stress_space.element.interpolation_points,
+    )
+
+    sigma_xx_h.interpolate(
+        matrix_sigma_xx_expression,
+        cells0=matrix_cells,
+    )
+
+    sigma_xx_h.interpolate(
+        particle_sigma_xx_expression,
+        cells0=particle_cells,
+    )
+
+    sigma_xx_h.x.scatter_forward()
+
+    # Quantitative axial-stress field verification
+    owned_cell_count = domain.topology.index_map(
+        tdim
+    ).size_local
+
+    matrix_owned_cells = matrix_cells[
+        matrix_cells < owned_cell_count
+    ]
+
+    particle_owned_cells = particle_cells[
+        particle_cells < owned_cell_count
+    ]
+
+    def extract_cell_stress_values(cells):
+        """Return DG0 sigma_xx values for selected cells."""
+        values = np.empty(
+            len(cells),
+            dtype=PETSc.ScalarType,
+        )
+
+        for index, cell in enumerate(cells):
+            cell_dof = stress_space.dofmap.cell_dofs(
+                int(cell)
+            )[0]
+
+            values[index] = sigma_xx_h.x.array[
+                cell_dof
+            ]
+
+        return values
+
+    matrix_sigma_xx_values = extract_cell_stress_values(
+        matrix_owned_cells
+    )
+
+    particle_sigma_xx_values = extract_cell_stress_values(
+        particle_owned_cells
+    )
+
+    matrix_min_local = (
+        np.min(matrix_sigma_xx_values)
+        if len(matrix_sigma_xx_values) > 0
+        else np.inf
+    )
+
+    matrix_max_local = (
+        np.max(matrix_sigma_xx_values)
+        if len(matrix_sigma_xx_values) > 0
+        else -np.inf
+    )
+
+    particle_min_local = (
+        np.min(particle_sigma_xx_values)
+        if len(particle_sigma_xx_values) > 0
+        else np.inf
+    )
+
+    particle_max_local = (
+        np.max(particle_sigma_xx_values)
+        if len(particle_sigma_xx_values) > 0
+        else -np.inf
+    )
+
+    matrix_sigma_xx_min = domain.comm.allreduce(
+        matrix_min_local,
+        op=MPI.MIN,
+    )
+
+    matrix_sigma_xx_max = domain.comm.allreduce(
+        matrix_max_local,
+        op=MPI.MAX,
+    )
+
+    particle_sigma_xx_min = domain.comm.allreduce(
+        particle_min_local,
+        op=MPI.MIN,
+    )
+
+    particle_sigma_xx_max = domain.comm.allreduce(
+        particle_max_local,
+        op=MPI.MAX,
+    )
+
+    tagged_cell_count = domain.comm.allreduce(
+        len(matrix_owned_cells)
+        + len(particle_owned_cells),
+        op=MPI.SUM,
+    )
+
+    total_cell_count = domain.comm.allreduce(
+        owned_cell_count,
+        op=MPI.SUM,
+    )
+
+    nonfinite_local = (
+        np.count_nonzero(
+            ~np.isfinite(matrix_sigma_xx_values)
+        )
+        + np.count_nonzero(
+            ~np.isfinite(particle_sigma_xx_values)
+        )
+    )
+
+    nonfinite_sigma_xx_count = domain.comm.allreduce(
+        nonfinite_local,
+        op=MPI.SUM,
+    )
+
+    stress_field_checks = {
+        "all_cells_tagged": (
+            tagged_cell_count == total_cell_count
+        ),
+        "finite_sigma_xx": (
+            nonfinite_sigma_xx_count == 0
+        ),
+    }
+
+    if not all(stress_field_checks.values()):
+        failed_checks = [
+            name
+            for name, passed in stress_field_checks.items()
+            if not passed
+        ]
+
+        raise RuntimeError(
+            "Stress-field verification failed: "
+            + ", ".join(failed_checks)
+        )
+
+    if domain.comm.rank == 0:
+        print(
+            "Matrix sigma_xx range:",
+            matrix_sigma_xx_min,
+            "to",
+            matrix_sigma_xx_max,
+        )
+
+        print(
+            "Particle sigma_xx range:",
+            particle_sigma_xx_min,
+            "to",
+            particle_sigma_xx_max,
+        )
+
+        print(
+            "Stress-field tagged-cell check:",
+            stress_field_checks["all_cells_tagged"],
+        )
+
+        print(
+            "Stress-field finite-value check:",
+            stress_field_checks["finite_sigma_xx"],
+        )
+
+        print()
+
+    # Visualize cell-wise axial stress in serial runs
+    if domain.comm.size == 1:
+        stress_topology, stress_cell_types, stress_geometry = (
+            plot.vtk_mesh(
+                domain,
+                tdim,
+            )
+        )
+
+        stress_grid = pv.UnstructuredGrid(
+            stress_topology,
+            stress_cell_types,
+            stress_geometry,
+        )
+
+        number_of_cells = domain.topology.index_map(
+            tdim
+        ).size_local
+
+        sigma_xx_cell_values = np.zeros(
+            number_of_cells,
+            dtype=PETSc.ScalarType,
+        )
+
+        for cell in range(number_of_cells):
+            cell_dof = stress_space.dofmap.cell_dofs(
+                cell
+            )[0]
+
+            sigma_xx_cell_values[cell] = (
+                sigma_xx_h.x.array[cell_dof]
+            )
+
+        stress_grid.cell_data["Sigma_xx"] = (
+            sigma_xx_cell_values
+        )
+
+        stress_output_file = Path(
+            "figures/04_single_particle_sigma_xx.png"
+        )
+
+        stress_plotter = pv.Plotter(
+            off_screen=True,
+            window_size=(1000, 900),
+        )
+
+        stress_plotter.add_mesh(
+            stress_grid,
+            scalars="Sigma_xx",
+            preference="cell",
+            show_edges=True,
+            line_width=0.4,
+            scalar_bar_args={
+                "title": "Sigma_xx",
+            },
+        )
+
+        stress_plotter.view_xy()
+        stress_plotter.enable_parallel_projection()
+
+        stress_plotter.show(
+            screenshot=str(stress_output_file),
+            auto_close=True,
+        )
 
     matrix_area_local = fem.assemble_scalar(
         fem.form(1.0 * dx(matrix_tag))
