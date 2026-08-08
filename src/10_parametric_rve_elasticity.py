@@ -50,6 +50,14 @@ def main() -> None:
             "No JSON file is written when this option is omitted."
         ),
     )
+    parser.add_argument(
+        "--no-plots",
+        action="store_true",
+        help=(
+            "Skip displacement and stress PNG generation. "
+            "Useful for automated parametric or dataset runs."
+        ),
+    )
     args = parser.parse_args()
 
     # ------------------------------------------------------------------
@@ -488,7 +496,7 @@ def main() -> None:
     # ------------------------------------------------------------------
     # 9. Visualize solved displacement field in serial runs
     # ------------------------------------------------------------------
-    if domain.comm.size == 1:
+    if domain.comm.size == 1 and not args.no_plots:
         topology, cell_types, geometry = plot.vtk_mesh(V)
 
         displacement_grid = pv.UnstructuredGrid(
@@ -792,7 +800,7 @@ def main() -> None:
         print()
 
     # Visualize cell-wise axial stress in serial runs
-    if domain.comm.size == 1:
+    if domain.comm.size == 1 and not args.no_plots:
         stress_topology, stress_cell_types, stress_geometry = (
             plot.vtk_mesh(
                 domain,
