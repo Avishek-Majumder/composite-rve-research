@@ -48,6 +48,7 @@ results/processed/*
 !results/processed/04_m4_parameter_screening.md
 !results/processed/05_m4_sampling_domain_verification.md
 !results/processed/06_m4_lhs_initial_design.csv
+!results/processed/07_m5_initial_fem_dataset.csv
 
 # Runtime logs
 logs/*
