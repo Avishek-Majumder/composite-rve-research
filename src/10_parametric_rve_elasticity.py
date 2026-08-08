@@ -1,6 +1,7 @@
 """Solve the first single-particle 2D composite elasticity model."""
 
 import argparse
+import json
 from pathlib import Path
 import math
 
@@ -38,6 +39,15 @@ def main() -> None:
         help=(
             "Override mesh.global_size from the selected configuration "
             "for this run only."
+        ),
+    )
+    parser.add_argument(
+        "--results-file",
+        type=Path,
+        default=None,
+        help=(
+            "Optional path for one machine-readable JSON result record. "
+            "No JSON file is written when this option is omitted."
         ),
     )
     args = parser.parse_args()
@@ -969,6 +979,99 @@ def main() -> None:
         )
 
     if domain.comm.rank == 0:
+        if args.results_file is not None:
+            result_record = {
+                "config_path": str(config_path),
+                "model": {
+                    "name": str(config["model"]["name"]),
+                    "dimension": int(model_dimension),
+                    "assumption": model_assumption,
+                    "interface": interface_assumption,
+                },
+                "geometry": {
+                    "width": float(width),
+                    "height": float(height),
+                },
+                "matrix": {
+                    "youngs_modulus": float(matrix_E),
+                    "poissons_ratio": float(matrix_nu),
+                },
+                "particle": {
+                    "youngs_modulus": float(particle_E),
+                    "poissons_ratio": float(particle_nu),
+                    "center_x": float(cx),
+                    "center_y": float(cy),
+                    "radius": float(radius),
+                    "analytical_fraction": float(
+                        analytical_particle_fraction
+                    ),
+                    "meshed_fraction": float(
+                        numerical_particle_fraction
+                    ),
+                    "fraction_error": float(fraction_error),
+                },
+                "loading": {
+                    "prescribed_x_displacement": float(
+                        prescribed_ux
+                    ),
+                },
+                "mesh": {
+                    "global_size": float(mesh_size),
+                    "cell_count": int(total_cell_count),
+                },
+                "response": {
+                    "average_epsilon_xx": float(average_exx),
+                    "average_epsilon_yy": float(average_eyy),
+                    "average_sigma_xx": float(average_sxx),
+                    "average_sigma_yy": float(average_syy),
+                    "effective_modulus": float(
+                        effective_modulus
+                    ),
+                    "effective_poissons_ratio": float(
+                        effective_poissons_ratio
+                    ),
+                    "matrix_sigma_xx_min": float(
+                        matrix_sigma_xx_min
+                    ),
+                    "matrix_sigma_xx_max": float(
+                        matrix_sigma_xx_max
+                    ),
+                    "particle_sigma_xx_min": float(
+                        particle_sigma_xx_min
+                    ),
+                    "particle_sigma_xx_max": float(
+                        particle_sigma_xx_max
+                    ),
+                },
+                "solver": {
+                    "convergence_reason": int(solver_reason),
+                },
+                "verification": {
+                    name: bool(passed)
+                    for name, passed in validation_checks.items()
+                },
+            }
+
+            args.results_file.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+            with args.results_file.open(
+                "w",
+                encoding="utf-8",
+            ) as file:
+                json.dump(
+                    result_record,
+                    file,
+                    indent=2,
+                    allow_nan=False,
+                )
+                file.write("\n")
+
+            print("Results JSON:", args.results_file)
+            print()
+
         print("Model:", config["model"]["name"])
         print("Assumption:", config["model"]["assumption"])
         print("Interface:", config["model"]["interface"])
