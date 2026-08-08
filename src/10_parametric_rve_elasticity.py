@@ -117,14 +117,25 @@ def main() -> None:
     cy = float(config["particle"]["center_y"])
     radius = float(config["particle"]["radius"])
 
-    if width <= 0.0 or height <= 0.0:
+    if (
+        not np.isfinite(width)
+        or not np.isfinite(height)
+        or width <= 0.0
+        or height <= 0.0
+    ):
         raise ValueError(
-            "RVE geometry.width and geometry.height must be positive."
+            "RVE geometry.width and geometry.height must be finite "
+            "and positive."
         )
 
-    if radius <= 0.0:
+    if not np.isfinite(cx) or not np.isfinite(cy):
         raise ValueError(
-            "particle.radius must be positive."
+            "particle.center_x and particle.center_y must be finite."
+        )
+
+    if not np.isfinite(radius) or radius <= 0.0:
+        raise ValueError(
+            "particle.radius must be finite and positive."
         )
 
     particle_strictly_inside_rve = (
@@ -145,14 +156,22 @@ def main() -> None:
         config["loading"]["prescribed_x_displacement"]
     )
 
+    if not np.isfinite(prescribed_ux) or prescribed_ux <= 0.0:
+        raise ValueError(
+            "loading.prescribed_x_displacement must be finite and "
+            "positive for this verified uniaxial-tension solver."
+        )
+
     mesh_size = (
         float(config["mesh"]["global_size"])
         if args.mesh_size is None
         else float(args.mesh_size)
     )
 
-    if mesh_size <= 0.0:
-        raise ValueError("Mesh size must be positive.")
+    if not np.isfinite(mesh_size) or mesh_size <= 0.0:
+        raise ValueError(
+            "Mesh size must be finite and positive."
+        )
 
     # ------------------------------------------------------------------
     # 2. Create tagged matrix + particle mesh with Gmsh
