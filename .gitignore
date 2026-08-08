@@ -46,6 +46,7 @@ results/processed/*
 !results/processed/02_m3_mesh_convergence_verification.md
 !results/processed/03_m4_parameterization_audit.md
 !results/processed/04_m4_parameter_screening.md
+!results/processed/05_m4_sampling_domain_verification.md
 
 # Runtime logs
 logs/*
