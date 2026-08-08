@@ -47,6 +47,7 @@ results/processed/*
 !results/processed/03_m4_parameterization_audit.md
 !results/processed/04_m4_parameter_screening.md
 !results/processed/05_m4_sampling_domain_verification.md
+!results/processed/06_m4_lhs_initial_design.csv
 
 # Runtime logs
 logs/*
