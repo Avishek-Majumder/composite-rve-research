@@ -761,6 +761,154 @@ boundary-condition/PBC verification and any final ML-target promotion
 remain M8 responsibilities.
 
 
+
+## 14B. Clustered-particle end-to-end validation coverage
+
+The intensive Version-1 severity and response-specific mesh studies
+above used the fixed random-particle validation realization.
+
+Before M7 closure, an additional validation-only realization was
+therefore used to verify that the complete M7 extension also operates
+on the clustered-particle branch established in M6.
+
+This is implementation and robustness coverage. It is not a
+statistical or causal comparison between random and clustered
+microstructures.
+
+### Clustered M6 source
+
+A new validation-only M6 geometry was generated with:
+
+- arrangement:
+  `clustered_bounded_disk_rejection_v1`;
+- particle RNG seed: 2026083001;
+- particle count: 8;
+- cluster count: 2;
+- cluster radius: 0.18;
+- minimum cluster-center distance: 0.35;
+- particle area fraction: 0.05735635599468581;
+- minimum particle surface gap: 0.02346027715900377;
+- minimum external-boundary surface gap:
+  0.10933039217549304.
+
+The source-record SHA-256 was:
+
+`7c75911b6c0c6e523ac2e76d86761d5f98a4612bbc337f297003d3fe0c4be3f4`.
+
+This case is explicitly a new M7 validation-only source case and is
+not represented as a recovered historical M6 validation invocation.
+
+### Deterministic M7 void augmentation
+
+The clustered particle realization was augmented with two Version-1
+matrix-phase circular voids using independent void seed 2026083002.
+
+The resulting geometry preserved all eight source particles exactly
+and retained particle arrangement
+`clustered_bounded_disk_rejection_v1`.
+
+The void arrangement remained
+`random_uniform_matrix_void_rejection_v1`.
+
+The resulting void area fraction was
+0.005144068467129911.
+
+The minimum observed surface gaps were:
+
+- void-particle: 0.14075928307876262;
+- void-void: 0.5170445277781088;
+- void-boundary: 0.06779745518822602.
+
+Repeated generation was byte-for-byte deterministic.
+
+The clustered M7 geometry SHA-256 was:
+
+`14b8ccfc7d3526effe53f50eda1c768f306c3421d6b6e85381585334c33ccf69`.
+
+### Clustered true-hole mesh verification
+
+The same clustered M7 geometry was meshed at the established M7
+reference mesh size `h = 0.02048`.
+
+The mesh contained:
+
+- 6259 total cells;
+- 6259 tagged cells;
+- 5802 matrix cells;
+- 457 particle cells;
+- 19 void-boundary facets.
+
+The observed area-fraction errors were:
+
+- matrix: 0.001939709918938548;
+- particle: 0.001574748134597223;
+- void: 0.0003649617843413302;
+- solid: 0.0003649617843413111.
+
+The void-boundary relative-length error was
+0.018153833039263656.
+
+All permanent serialized M7 mesh-verification checks passed.
+
+The clustered mesh-diagnostics SHA-256 was:
+
+`cf31725a5abc34d581f0baefca7226073517225be2539b6f903119285a032336`.
+
+### Clustered end-to-end elasticity and local response
+
+The same geometry was then solved with the permanent M7 elasticity
+solver at `h = 0.02048`.
+
+The solver converged.
+
+The gross-RVE response was:
+
+- macro axial strain: 0.01;
+- macro axial stress: 10.615887895016348;
+- apparent axial modulus: 1061.5887895016347.
+
+The Version-1 local response was valid and produced:
+
+- neighborhood matrix cell count: 123;
+- neighborhood matrix area: 0.01662509849605763;
+- upper-tail effective area: 0.001662509849605763;
+- upper-tail contributing cell count: 13;
+- area-weighted neighborhood mean von Mises stress:
+  11.151872171148044;
+- `sigma_vm_tail10`: 19.47316455296765;
+- `K_vm_tail10`: 1.8343415779766636;
+- raw maximum von Mises stress, diagnostic only:
+  25.316086275725134.
+
+All permanent solver verification checks and all independent
+end-to-end response checks passed.
+
+The clustered FEM result SHA-256 was:
+
+`83a45e0a27f65b29167b2bae4cc606a9cd6e68cab841f33b1d1b0e5516be5ad4`.
+
+### Coverage conclusion
+
+The M7 implementation has therefore been exercised successfully on
+both:
+
+- the random-particle branch; and
+- the clustered-particle branch inherited from M6.
+
+This closes the M7 random/clustered implementation-coverage gap
+identified during the closure-readiness audit.
+
+The clustered case does not establish that differences between random
+and clustered responses are caused purely by clustering, and no such
+comparison is claimed here.
+
+It also does not replace later stochastic sampling, grouped ML
+validation, final homogenization BC/PBC verification or final
+production target-mesh verification.
+
+Those responsibilities remain in later milestones, beginning with M8.
+
+
 ## 15. M7/M8 scope boundary
 
 M7 owns:
