@@ -615,6 +615,152 @@ Successful records must preserve:
 
 ---
 
+
+## 14A. Version-1 local-response validation evidence
+
+The Version-1 local response
+`m7_matrix_vm_annulus_tail10_v1` has completed its M7
+validation-candidate checks.
+
+This section records the evidence actually observed. It does not impose
+a retrospective numerical acceptance threshold and does not claim a
+formal Richardson-extrapolation or Grid Convergence Index analysis.
+
+### Controlled defect-severity evidence
+
+A fixed underlying six-particle realization and fixed two-void center
+locations were used. Only both void radii were multiplied by a common
+scale.
+
+The tested common radius scales were:
+
+- 0.50;
+- 0.75;
+- 1.00;
+- 1.10.
+
+The corresponding void area fractions were:
+
+- 0.0016127410222277249;
+- 0.0036286673000123807;
+- 0.0064509640889108995;
+- 0.007805666547582189.
+
+At the M7 reference mesh size `h = 0.02048`, apparent axial modulus
+decreased strictly as void severity increased:
+
+- scale 0.50: 1085.0365519439365;
+- scale 0.75: 1079.8227575683811;
+- scale 1.00: 1071.8890527671476;
+- scale 1.10: 1067.891679487993.
+
+The corresponding `K_vm_tail10` values were:
+
+- scale 0.50: 1.8133452206383758;
+- scale 0.75: 1.9313331459247476;
+- scale 1.00: 1.8289987573743496;
+- scale 1.10: 1.8715610121388946.
+
+No monotonic direction is required for `K_vm_tail10`. The controlled
+study demonstrated that the metric responds to defect severity while
+the global stiffness response follows the expected decreasing trend.
+
+The transformed scale-1.00 case reproduced the original source
+geometry's global response, local response and solver record exactly.
+
+### Response-specific mesh evidence at scale 1.00
+
+The same physical geometry was evaluated at three verifier-valid mesh
+sizes:
+
+- `h = 0.03800`;
+- `h = 0.02048`;
+- `h = 0.01000`.
+
+The respective cell counts were:
+
+- 1976;
+- 6046;
+- 23675.
+
+The `K_vm_tail10` values were:
+
+- 1.8397895885212097;
+- 1.8289987573743496;
+- 1.820025149678451.
+
+Relative to the finest tested comparison mesh `h = 0.01000`, the
+`h = 0.02048` differences were:
+
+- apparent axial modulus: 0.002493056480088191;
+- `sigma_vm_tail10`: 0.007435834006159118;
+- `K_vm_tail10`: 0.004930485547127743;
+- raw maximum von Mises stress: 0.13627808739202557.
+
+The finest tested mesh is a comparison reference only and is not
+declared to be the exact continuum solution.
+
+### Extreme-severity mesh spot checks
+
+The low-severity scale 0.50 and high-severity scale 1.10 cases were
+also compared between `h = 0.02048` and `h = 0.01000`.
+
+For scale 0.50:
+
+- `K_vm_tail10` relative difference:
+  0.035741662489806474;
+- `sigma_vm_tail10` relative difference:
+  0.034880717785263936;
+- raw maximum von Mises relative difference:
+  0.11871579520020649;
+- apparent axial modulus relative difference:
+  0.0008928568943107427.
+
+For scale 1.10:
+
+- `K_vm_tail10` relative difference:
+  0.025530948181384218;
+- `sigma_vm_tail10` relative difference:
+  0.028155315078885666;
+- raw maximum von Mises relative difference:
+  0.11439791710509453;
+- apparent axial modulus relative difference:
+  0.0025590323745521733.
+
+Across the tested low, baseline and high severity cases, the largest
+observed `h = 0.02048` versus `h = 0.01000` relative difference in
+`K_vm_tail10` was therefore 0.035741662489806474.
+
+This observed value is an evidence summary, not a newly imposed
+post-hoc pass/fail threshold.
+
+### M7 decision
+
+`m7_matrix_vm_annulus_tail10_v1` is accepted as the Version-1
+defect-sensitive **M7 validation candidate**.
+
+This means that it may be used for the remaining M7 validation work
+because it has demonstrated:
+
+- deterministic extraction for identical input and mesh;
+- valid real solved-field extraction;
+- controlled defect-severity sensitivity;
+- substantially lower mesh sensitivity than the raw local stress
+  maximum in the tested cases;
+- response-specific mesh evidence across low, baseline and high
+  severity cases.
+
+The raw local stress maximum remains diagnostic only.
+
+This M7 decision does **not** promote `K_vm_tail10` to the final
+machine-learning target and does **not** establish final production
+mesh adequacy.
+
+Final stochastic target-mesh verification, final homogenization
+boundary-condition/PBC verification and any final ML-target promotion
+remain M8 responsibilities.
+
+
 ## 15. M7/M8 scope boundary
 
 M7 owns:
