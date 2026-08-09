@@ -301,6 +301,15 @@ domain, which equals the full RVE area because M6 contains no void.
 That denominator cannot be reused silently after geometric holes are
 introduced.
 
+The permanent Version-1 identifier for this already-defined gross-RVE
+axial response is:
+
+`m7_gross_rve_axial_v1`
+
+This identifier names the existing gross-RVE macroscopic axial response
+definition. It does not change the mechanics, normalization, boundary
+conditions, mesh tolerances, or the M7/M8 scope boundary.
+
 For the porous M7 RVE, the provisional macroscopic axial stress will
 use the gross RVE reference area:
 
