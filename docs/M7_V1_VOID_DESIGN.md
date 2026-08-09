@@ -398,6 +398,163 @@ document.
 
 They must be selected from M7 validation evidence.
 
+### 12.1 Version-1 validation candidate selected after STEP 564
+
+STEP 564 completed the local-response implementation preflight and
+confirmed that the required cell-field, interpolation and geometry
+capabilities are available in the validated software environment.
+
+The following metric is therefore locked as the FIRST M7
+defect-sensitive validation candidate:
+
+    metric_id =
+        m7_matrix_vm_annulus_tail10_v1
+
+This decision does NOT yet promote the metric to the final downstream
+machine-learning target. Promotion requires the controlled physical
+trend and response-specific mesh-robustness evidence required later in
+M7.
+
+#### Stress field
+
+Use the plane-stress von Mises equivalent stress in MATRIX MATERIAL
+ONLY:
+
+    sigma_vm =
+        sqrt(
+            sigma_xx^2
+            - sigma_xx * sigma_yy
+            + sigma_yy^2
+            + 3 * tau_xy^2
+        )
+
+Particle cells are excluded from the statistic.
+
+Void interiors contain no material cells and therefore cannot
+contribute.
+
+The von Mises field is used here as a scalar stress-concentration
+indicator. It is NOT interpreted as a validated matrix failure,
+yielding or damage criterion because Version 1 contains no plasticity,
+failure or damage constitutive model.
+
+#### Geometric void neighborhood
+
+For void i with center c_i and radius r_i, define its Version-1
+matrix-neighborhood annulus using cell midpoint x_c:
+
+    r_i
+        < distance(x_c, c_i)
+        <= 2 * r_i
+
+Only cells carrying the matrix material tag are eligible.
+
+For multiple voids, the neighborhood is the UNION of all qualifying
+matrix cells.
+
+A cell satisfying more than one void annulus is counted exactly once.
+
+The outer radius therefore scales with the physical void radius rather
+than with mesh size.
+
+The midpoint rule is an explicit discrete neighborhood-selection rule
+and must itself be tested through the M7 response-specific mesh study.
+
+#### Robust upper-tail statistic
+
+Let A_N be the total physical area of all matrix cells in the union
+void neighborhood.
+
+Set:
+
+    upper_tail_area_fraction = 0.10
+
+Sort neighborhood matrix cells by sigma_vm from highest to lowest.
+
+Accumulate physical cell area until exactly:
+
+    0.10 * A_N
+
+has been included.
+
+If the final cutoff cell would exceed the required upper-tail area,
+use only the required fractional area weight from that final cell.
+
+Define:
+
+    sigma_vm_tail10 =
+        area_weighted_mean_sigma_vm
+        over the highest-stress 10 percent
+        of neighborhood matrix area
+
+This definition intentionally uses physical cell-area weighting rather
+than treating every mesh cell as an equal statistical observation.
+
+#### Normalized defect-sensitive candidate
+
+Define:
+
+    K_vm_tail10 =
+        sigma_vm_tail10
+        / abs(macro_sigma_xx)
+
+where macro_sigma_xx is the already validated M7 gross-RVE
+macroscopic axial stress.
+
+A valid positive-void record therefore requires:
+
+    abs(macro_sigma_xx) > 0
+
+and a non-empty positive-area matrix neighborhood.
+
+#### Zero-void behavior
+
+For a zero-void regression case there is no void neighborhood.
+
+Therefore:
+
+    K_vm_tail10 = not_applicable
+
+It must NOT be silently encoded as physical zero.
+
+The global M7 response and M6 zero-void regression remain valid
+independently of this local metric.
+
+#### Diagnostics retained
+
+The following may be recorded for validation/diagnostic purposes:
+
+- neighborhood matrix-cell count;
+- neighborhood matrix area;
+- upper-tail effective area;
+- raw maximum neighborhood sigma_vm;
+- area-weighted neighborhood mean sigma_vm;
+- sigma_vm_tail10;
+- K_vm_tail10;
+- per-mesh extraction status.
+
+The raw maximum remains diagnostic only and must not replace
+K_vm_tail10 merely because it has a larger numerical value.
+
+#### Acceptance before promotion
+
+This Version-1 candidate may become a primary downstream response only
+after M7 demonstrates:
+
+- deterministic extraction for identical geometry, mesh and seeds;
+- finite and reproducible positive-void values;
+- controlled defect-severity behavior with fixed underlying particle
+  geometry;
+- explicit rejection/reporting of response-extraction failures;
+- response-specific comparison over multiple mesh sizes;
+- acceptable mesh robustness of K_vm_tail10;
+- continued separation between M7 validation evidence and the later
+  final M8 production target-mesh verification.
+
+If these checks fail, the metric must be revised explicitly rather
+than silently changing its field, neighborhood, upper-tail fraction or
+normalization.
+
 ---
 
 ## 13. Required M7 trend checks
