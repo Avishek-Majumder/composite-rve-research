@@ -3,9 +3,9 @@
 **Last verified milestone checkpoint:** 9 August 2026
 **Research route:** Simulation + Machine Learning only
 **Laboratory experiments:** None
-**Current completed major milestone:** M6 — Multiple/Random-Particle Microstructure Foundation
-**Next major milestone:** M7 — Circular Void Defects + Defect-Sensitive Response Definition
-**M7 implementation status:** NOT STARTED
+**Current completed major milestone:** M7 — Circular Void Defects + Defect-Sensitive Response Definition
+**Next major milestone:** M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
+**M7 implementation status:** 100% COMPLETE
 **Authoritative post-M5 roadmap:** `docs/Secondary_Planning.docx`
 
 ---
@@ -35,7 +35,7 @@ The original Project 01 planning remains the historical initial scope. The post-
 | M4        | 100% COMPLETE | Parametric RVE and sampling foundation                                                 |
 | M5        | 100% COMPLETE | Initial perfect-bonding FEM dataset generation                                         |
 | M6        | 100% COMPLETE | Multiple/Random-Particle Microstructure Foundation                                     |
-| M7        | NOT STARTED   | Circular Void Defects and Defect-Sensitive Response Definition                         |
+| M7        | 100% COMPLETE | Circular Void Defects and Defect-Sensitive Response Definition                         |
 | M8        | NOT STARTED   | RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification |
 | M9        | NOT STARTED   | Final Parameter-Space Lock and Stochastic Pilot Dataset                                |
 | M10       | NOT STARTED   | Main Quality-Controlled FEM Simulation Database                                        |
@@ -48,19 +48,34 @@ The original Project 01 planning remains the historical initial scope. The post-
 
 ## 3. Post-M5 Alignment Decision
 
-The project-plan alignment audit concluded that the work through M5 is scientifically valid and should be retained.
+The project-plan alignment audit concluded that the work through M5
+is scientifically valid and should be retained.
 
-M4 and M5 are interpreted as **inserted parametric, automation, and baseline-data foundation milestones**. They do not replace the random-microstructure, defect, RVE/PBC, stochastic-dataset, active-learning, uncertainty, or OOD stages from the original research plan.
+M4 and M5 are interpreted as **inserted parametric, automation, and
+baseline-data foundation milestones**. They do not replace the
+random-microstructure, defect, RVE/PBC, stochastic-dataset,
+active-learning, uncertainty, or OOD stages from the original
+research plan.
 
-The corrected roadmap therefore continues sequentially through M6-M14.
+The corrected roadmap therefore continues sequentially through
+M6-M14.
 
-M6 has now completed the multiple/random-particle foundation required before defect introduction.
+M6 completed the multiple/random-particle microstructure foundation.
+
+M7 has now completed and validated the Version-1 circular matrix-void
+extension, true-hole conformal meshing, void-capable elasticity
+response, controlled defect-severity checks, defect-sensitive local
+response definition, response-specific mesh evidence, and
+random/clustered implementation coverage.
 
 The next scientific milestone is:
 
-> **M7 — Circular Void Defects + Defect-Sensitive Response Definition**
+> **M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification**
 
-M7 must not begin until the M6 closure documentation checkpoint has been validated, committed, pushed to GitHub, repository synchronization has been verified, and the user explicitly confirms the M7 transition.
+M8 must not begin until the M7 closure-status update has been
+validated, committed, pushed to GitHub, repository synchronization
+has been verified, and the user explicitly confirms the M8
+transition.
 
 ---
 
@@ -417,45 +432,265 @@ Those requirements remain assigned to later milestones in `docs/Secondary_Planni
 
 ---
 
-## 10. Remaining Scientific Roadmap Before Final ML Claims
+## 10. Remaining Scientific Roadmap After M7
+
+M7 completes the Version-1 circular-void and defect-sensitive-response
+foundation, but it does not complete the full research programme.
 
 The project still requires:
 
-1. Circular void defects as the Version-1 defect model.
-2. A robust defect-sensitive stress-concentration response.
-3. RVE-size/statistical-representativity verification.
-4. Final homogenization boundary-condition / PBC verification.
-5. Final stochastic target-mesh verification.
-6. Final stochastic parameter-space locking.
-7. Geometry, mesh, solver, runtime, failure, and provenance recording.
-8. A quality-controlled stochastic pilot dataset.
-9. A quality-controlled main FEM simulation database.
-10. Grouped/leakage-safe ML validation.
-11. Active learning versus random sampling at equal FEM budgets.
-12. Quantitative uncertainty calibration.
-13. Separation of microstructure variability from model uncertainty.
-14. Deliberate out-of-distribution testing.
-15. Final ablations, figures, reproducibility evidence, and manuscript analysis.
+1. RVE-size/statistical-representativity verification.
+2. Final homogenization boundary-condition / PBC verification.
+3. Final stochastic target-mesh verification.
+4. Final stochastic parameter-space locking.
+5. Continued geometry, mesh, solver, runtime, failure, and provenance recording.
+6. A quality-controlled stochastic pilot dataset.
+7. A quality-controlled main FEM simulation database.
+8. Grouped/leakage-safe ML validation.
+9. Active learning versus random sampling at equal FEM budgets.
+10. Quantitative uncertainty calibration.
+11. Separation of microstructure variability from model uncertainty.
+12. Deliberate out-of-distribution testing.
+13. Final ablations, figures, reproducibility evidence, and manuscript analysis.
 
-The current M6 validation cases must not be silently promoted into the final stochastic research dataset.
+The M5, M6, and M7 validation cases must not be silently promoted into
+the final stochastic research dataset.
+
+The M7 local metric
+`m7_matrix_vm_annulus_tail10_v1` is accepted as the validated
+Version-1 defect-sensitive response candidate for continued research
+use, but it is not yet promoted to the final ML target.
+
+Final target promotion remains conditional on the later verification
+owned by M8, including the final homogenization BC/PBC decision and
+final production target-mesh verification.
 
 ---
 
-## 11. M7 Goal
+## 11. M7 Completion Summary
 
 ### M7 — Circular Void Defects + Defect-Sensitive Response Definition
 
-M7 is the next planned scientific milestone.
+M7 is scientifically complete and has passed the corrected final
+closure-readiness audit.
 
-Its purpose is to introduce and validate the Version-1 circular void-defect representation on top of the verified M6 multi-particle foundation.
+M7 extends the validated M6 multi-particle foundation without
+modifying the protected M6 implementation in place.
 
-M7 must include explicit scientific decisions and validation for the defect representation rather than silently altering the M6 geometry or physics assumptions.
+### 11.1 Permanent M7 design record
 
-M7 also must define and mesh-check a robust defect-sensitive stress-concentration response before that response can become a primary downstream ML target.
+**File**
 
-Raw local stress extrema remain diagnostic only unless later validation establishes an appropriate robust target.
+`docs/M7_V1_VOID_DESIGN.md`
 
-M7 has **not started**.
+**SHA-256**
+
+`6bae86aa2302d2173ca235cc320af59dc326c4924143138ccadabdb6b014d814`
+
+The design record defines:
+
+- true circular matrix-phase geometric voids;
+- strictly positive configured void-particle, void-void, and
+  void-boundary spacing;
+- independent void RNG provenance;
+- gross-RVE area accounting;
+- true-hole conformal meshing requirements;
+- the permanent global-response identifier
+  `m7_gross_rve_axial_v1`;
+- the Version-1 defect-sensitive candidate
+  `m7_matrix_vm_annulus_tail10_v1`;
+- raw local stress maxima as diagnostic only;
+- explicit M7/M8 scope ownership.
+
+### 11.2 Permanent M7 void generator
+
+**File**
+
+`src/17_generate_m7_void_microstructure.py`
+
+**SHA-256**
+
+`3e24d3025f335a10ebbe3238807b4fc56d9b901296ea7fd4e52f994a1c6b587d`
+
+**Schema**
+
+`m7_void_microstructure_v1`
+
+Validated capabilities include:
+
+- deterministic circular-void generation from an independent integer
+  void seed;
+- preservation of the source M6 particle realization;
+- matrix-phase void placement;
+- requested void count and radius-range control;
+- void-particle, void-void, and void-boundary spacing enforcement;
+- zero-void regression support;
+- explicit invalid-placement status and failure reason;
+- geometry, area, gap, seed, NumPy, and source-file provenance.
+
+### 11.3 Permanent M7 true-hole mesher
+
+**File**
+
+`src/18_generate_m7_void_mesh.py`
+
+**SHA-256**
+
+`8455b280f0505910fe66708f3ed4a98f5a9bb097a459ea53ba18e07259f9a258`
+
+**Schema**
+
+`m7_void_mesh_diagnostics_v1`
+
+Validated capabilities include:
+
+- OpenCASCADE true-hole circular void topology;
+- matrix physical cell tag = `1`;
+- particle physical cell tag = `2`;
+- physical facet group `void_boundary`;
+- CAD area and topology verification;
+- DOLFINx cell-tag and void-boundary facet-tag transfer;
+- explicit matrix, particle, void, and solid fraction checks;
+- void-boundary length verification;
+- valid zero-void behavior.
+
+### 11.4 Permanent M7 elasticity and response solver
+
+**File**
+
+`src/19_solve_m7_void_elasticity.py`
+
+**SHA-256**
+
+`d9325a845be85ee4ca2e0bcfe73e699070e2a8a579d3e11b7e30beb3729118cf`
+
+**Result schema**
+
+`m7_void_elasticity_v2`
+
+**Global-response identifier**
+
+`m7_gross_rve_axial_v1`
+
+**Local-response identifier**
+
+`m7_matrix_vm_annulus_tail10_v1`
+
+The solver preserves the validated small-strain, plane-stress,
+isotropic matrix/particle, perfect matrix-particle bonding mechanics
+while treating the void as a true geometric hole.
+
+The M7 macroscopic axial stress is normalized by the gross RVE
+reference area.
+
+The local response uses matrix-cell von Mises stress in the
+radius-scaled void-annulus union and an area-weighted upper 10% tail
+mean normalized by the absolute gross-RVE macro axial stress.
+
+Raw maximum local stress remains diagnostic only.
+
+### 11.5 Key M7 validation evidence
+
+M7 validation included:
+
+- deterministic geometry regeneration;
+- different-void-seed behavior;
+- zero-void regression behavior;
+- impossible-geometry failure handling;
+- exact zero-void mechanics regression to the protected M6 solver;
+- true-hole CAD topology verification;
+- DOLFINx material/facet tag transfer;
+- controlled void-severity comparisons at common radius scales
+  `0.50`, `0.75`, `1.00`, and `1.10`;
+- strictly decreasing apparent axial modulus across that controlled
+  severity sequence;
+- real solved-field evaluation of
+  `m7_matrix_vm_annulus_tail10_v1`;
+- response-specific comparison over `h = 0.038`,
+  `h = 0.02048`, and `h = 0.010`;
+- extreme-severity reference/fine checks;
+- random-particle and clustered-particle end-to-end coverage.
+
+For the fixed scale-1.00 validation geometry, the relative difference
+in `K_vm_tail10` between `h = 0.02048` and the finest tested
+`h = 0.010` mesh was:
+
+`0.004930485547127743`
+
+Across the additional tested extreme-severity reference/fine cases,
+the largest observed `K_vm_tail10` relative difference was:
+
+`0.035741662489806474`
+
+No post-hoc pass/fail tolerance or Grid Convergence Index claim was
+introduced from those limited validation cases.
+
+The raw maximum von Mises stress showed materially larger mesh
+sensitivity and remains diagnostic only.
+
+### 11.6 Clustered-particle coverage
+
+A validation-only clustered M6 geometry was augmented with M7 voids,
+meshed, and solved end-to-end.
+
+The final clustered M7 FEM validation produced:
+
+- 8 particles;
+- 2 circular voids;
+- mesh size `0.02048`;
+- apparent axial modulus `1061.5887895016347`;
+- `K_vm_tail10 = 1.8343415779766636`;
+- all permanent FEM verification checks passed.
+
+This confirms implementation coverage of both M6 particle-arrangement
+branches.
+
+It does not establish a causal random-versus-clustered response
+difference.
+
+### 11.7 M7 Git implementation/evidence checkpoints
+
+Permanent M7 checkpoints include:
+
+- `77819bb2d93b1288b90c2f1acda5b2f90f12167a`
+  — `Document M7 Version-1 void design`;
+- `793831d2b59f2c5a95d414fdb03534ea0203deac`
+  — `Add validated M7 void microstructure generator`;
+- `6e21f74d80c4a8b98aa9eda8b96cb8e707435e89`
+  — `Add validated M7 void-capable mesher`;
+- `cea566960e7e4f1520ed6bd8215e57bb3cf7ca13`
+  — `Add M7 gross-RVE elasticity response`;
+- `dd2665912a6796d6dcb920d0dbbcc8e5aa0f4750`
+  — `Lock M7 local stress validation metric`;
+- `d2fbe187363dc4a6cfb228294fcd0e1f81fbdb3c`
+  — `Add M7 defect-sensitive local response`;
+- `598c112e067ca9d905bad9e8fd52078f16154d7a`
+  — `Record M7 local response validation evidence`;
+- `cd838537c49fa3cb0c819bc7a44302efb2db9195`
+  — `Record clustered M7 validation coverage`;
+- `564b5130040c88963116d5a498e27bf25a705029`
+  — `Record M7 global response identifier`.
+
+Commit `564b5130040c88963116d5a498e27bf25a705029`
+is the final validated M7 implementation/evidence checkpoint
+immediately before this closure-status update.
+
+The future M7 documentation-closure commit hash is intentionally not
+hard-coded before that commit exists.
+
+### 11.8 M7/M8 boundary
+
+M7 does not perform:
+
+- final RVE-size/statistical-representativity verification;
+- final homogenization BC/PBC selection;
+- final production stochastic target-mesh verification;
+- final parameter-space lock;
+- stochastic pilot dataset generation;
+- production FEM database generation;
+- machine-learning training.
+
+Those responsibilities remain in later milestones, beginning with M8.
 
 ---
 
@@ -552,22 +787,36 @@ Research work follows these rules:
 
 Current scientific state:
 
-- **M0-M5:** 100% COMPLETE.
+- **M0-M7:** 100% COMPLETE.
 - **Post-M5 alignment audit:** COMPLETE.
 - **Secondary Planning:** APPROVED and validated.
-- **M6 implementation:** COMPLETE and validated.
-- **M6 source-of-truth closure update:** prepared by this status revision.
-- **Circular void defects:** NOT YET INTRODUCED.
-- **M7 implementation:** NOT STARTED.
+- **M6 implementation and closure:** COMPLETE.
+- **M7 Version-1 circular void implementation:** COMPLETE and validated.
+- **M7 true-hole meshing:** COMPLETE and validated.
+- **M7 gross-RVE global response:** COMPLETE and validated.
+- **M7 defect-sensitive local-response candidate:** COMPLETE and validated.
+- **M7 controlled severity and response-specific mesh evidence:** COMPLETE.
+- **M7 random/clustered implementation coverage:** COMPLETE.
+- **M8 implementation:** NOT STARTED.
 - **Final stochastic research dataset:** NOT YET GENERATED.
 - **Final research ML:** NOT READY TO START.
 
-The next repository gate is to validate this M6 closure-status update, stage only `PROJECT_STATUS.md`, commit it, push it to `origin/main`, verify local/remote synchronization, and finish with a clean working tree.
+The next repository gate is to validate this M7 closure-status update,
+stage only `PROJECT_STATUS.md`, commit it, push it to `origin/main`,
+verify local/remote synchronization, and finish with a clean working
+tree.
 
-Only after that closure checkpoint is complete should M6 be formally closed in the guided workflow.
+Only after that closure checkpoint is complete should M7 be formally
+closed in the guided workflow.
 
-The next major milestone must then require explicit user confirmation before beginning:
+The next major milestone must then require explicit user confirmation
+before beginning:
 
-> **M7 — Circular Void Defects + Defect-Sensitive Response Definition**
+> **M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification**
 
-No M7 implementation should occur before that confirmation.
+M8 owns the final RVE-size/statistical-representativity study, final
+homogenization BC/PBC verification, and final production stochastic
+target-mesh verification.
+
+No M8 implementation should occur before that explicit transition
+confirmation.
