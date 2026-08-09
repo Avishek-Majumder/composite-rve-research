@@ -1,6 +1,8 @@
-"""Generate reproducible random multi-particle RVE geometry metadata.
+"""Generate reproducible multi-particle RVE geometry metadata.
 
-This M6 foundation script generates circular particles only.
+This M6 foundation script supports random and clustered circular
+particle arrangements.
+
 It does not create void defects, meshes, or FEM solutions.
 """
 
@@ -24,6 +26,19 @@ class Particle:
     center_y: float
     radius: float
     placement_attempts: int
+
+
+@dataclass(frozen=True)
+class ClusteredParticle:
+    """One circular reinforcing particle assigned to a cluster."""
+
+    particle_id: int
+    center_x: float
+    center_y: float
+    radius: float
+    placement_attempts: int
+    cluster_id: int
+    distance_to_cluster_center: float
 
 
 def parse_args() -> argparse.Namespace:
@@ -55,6 +70,47 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=10000,
     )
+
+    parser.add_argument(
+        "--arrangement",
+        choices=("random", "clustered"),
+        default="random",
+        help=(
+            "Particle arrangement mode. "
+            "Default preserves the validated random generator."
+        ),
+    )
+
+    parser.add_argument(
+        "--cluster-count",
+        type=int,
+        default=None,
+        help=(
+            "Number of cluster centers. "
+            "Required when --arrangement clustered."
+        ),
+    )
+
+    parser.add_argument(
+        "--cluster-radius",
+        type=float,
+        default=None,
+        help=(
+            "Maximum particle-center distance from its assigned "
+            "cluster center. Required for clustered mode."
+        ),
+    )
+
+    parser.add_argument(
+        "--min-cluster-center-distance",
+        type=float,
+        default=None,
+        help=(
+            "Minimum distance between cluster centers. "
+            "Required for clustered mode."
+        ),
+    )
+
     parser.add_argument("--width", type=float, default=1.0)
     parser.add_argument("--height", type=float, default=1.0)
 
@@ -125,6 +181,70 @@ def validate_inputs(args: argparse.Namespace) -> None:
             "radius-max plus boundary spacing leaves no usable "
             "y-position range."
         )
+
+    if args.arrangement == "clustered":
+        if args.cluster_count is None:
+            raise ValueError(
+                "cluster-count is required for clustered mode."
+            )
+
+        if args.cluster_radius is None:
+            raise ValueError(
+                "cluster-radius is required for clustered mode."
+            )
+
+        if args.min_cluster_center_distance is None:
+            raise ValueError(
+                "min-cluster-center-distance is required "
+                "for clustered mode."
+            )
+
+        if args.cluster_count <= 0:
+            raise ValueError(
+                "cluster-count must be positive."
+            )
+
+        if args.cluster_count > args.particle_count:
+            raise ValueError(
+                "cluster-count must not exceed particle-count."
+            )
+
+        if (
+            not np.isfinite(args.cluster_radius)
+            or args.cluster_radius <= 0.0
+        ):
+            raise ValueError(
+                "cluster-radius must be finite and positive."
+            )
+
+        if (
+            not np.isfinite(
+                args.min_cluster_center_distance
+            )
+            or args.min_cluster_center_distance < 0.0
+        ):
+            raise ValueError(
+                "min-cluster-center-distance must be finite "
+                "and non-negative."
+            )
+
+        cluster_margin = (
+            args.radius_max
+            + args.min_boundary_spacing
+            + args.cluster_radius
+        )
+
+        if 2.0 * cluster_margin >= args.width:
+            raise ValueError(
+                "Cluster/radius/boundary settings leave "
+                "no usable x-range for cluster centers."
+            )
+
+        if 2.0 * cluster_margin >= args.height:
+            raise ValueError(
+                "Cluster/radius/boundary settings leave "
+                "no usable y-range for cluster centers."
+            )
 
 
 def particle_surface_gap(
@@ -280,6 +400,304 @@ def generate_particles(
     return particles, "valid", None, total_attempts
 
 
+def generate_clustered_particles(
+    args: argparse.Namespace,
+) -> tuple[
+    list[ClusteredParticle],
+    str,
+    str | None,
+    int,
+    dict,
+]:
+    """Generate particles around reproducible bounded cluster centers."""
+
+    rng = Generator(PCG64(args.seed))
+
+    tolerance = 1.0e-12
+
+    cluster_radius = float(
+        args.cluster_radius
+    )
+
+    min_cluster_center_distance = float(
+        args.min_cluster_center_distance
+    )
+
+    cluster_margin = (
+        args.radius_max
+        + args.min_boundary_spacing
+        + cluster_radius
+    )
+
+    cluster_centers: list[dict] = []
+    total_cluster_attempts = 0
+
+    for cluster_id in range(
+        1,
+        args.cluster_count + 1,
+    ):
+        placed = False
+
+        for attempt in range(
+            1,
+            args.max_attempts_per_particle + 1,
+        ):
+            total_cluster_attempts += 1
+
+            center_x = float(
+                rng.uniform(
+                    cluster_margin,
+                    args.width - cluster_margin,
+                )
+            )
+
+            center_y = float(
+                rng.uniform(
+                    cluster_margin,
+                    args.height - cluster_margin,
+                )
+            )
+
+            sufficiently_separated = all(
+                math.hypot(
+                    center_x - existing["center_x"],
+                    center_y - existing["center_y"],
+                )
+                + tolerance
+                >= min_cluster_center_distance
+                for existing in cluster_centers
+            )
+
+            if not sufficiently_separated:
+                continue
+
+            cluster_centers.append(
+                {
+                    "cluster_id": cluster_id,
+                    "center_x": center_x,
+                    "center_y": center_y,
+                    "placement_attempts": attempt,
+                }
+            )
+
+            placed = True
+            break
+
+        if not placed:
+            reason = (
+                "cluster_center_placement_failed_for_cluster_"
+                f"{cluster_id}_after_"
+                f"{args.max_attempts_per_particle}_attempts"
+            )
+
+            arrangement_metadata = {
+                "cluster_count": args.cluster_count,
+                "cluster_radius": cluster_radius,
+                "min_cluster_center_distance": (
+                    min_cluster_center_distance
+                ),
+                "cluster_centers": cluster_centers,
+                "cluster_center_attempts": (
+                    total_cluster_attempts
+                ),
+                "particle_cluster_assignment": (
+                    "round_robin_v1"
+                ),
+                "candidate_distribution": (
+                    "uniform_area_within_bounded_"
+                    "cluster_disk_v1"
+                ),
+            }
+
+            return (
+                [],
+                "invalid",
+                reason,
+                0,
+                arrangement_metadata,
+            )
+
+    particles: list[ClusteredParticle] = []
+    total_particle_attempts = 0
+
+    for particle_id in range(
+        1,
+        args.particle_count + 1,
+    ):
+        radius = float(
+            rng.uniform(
+                args.radius_min,
+                args.radius_max,
+            )
+        )
+
+        cluster_index = (
+            (particle_id - 1)
+            % args.cluster_count
+        )
+
+        cluster = cluster_centers[
+            cluster_index
+        ]
+
+        placed = False
+
+        for attempt in range(
+            1,
+            args.max_attempts_per_particle + 1,
+        ):
+            total_particle_attempts += 1
+
+            angle = float(
+                rng.uniform(
+                    0.0,
+                    2.0 * math.pi,
+                )
+            )
+
+            radial_distance = (
+                cluster_radius
+                * math.sqrt(
+                    float(
+                        rng.uniform(
+                            0.0,
+                            1.0,
+                        )
+                    )
+                )
+            )
+
+            center_x = (
+                cluster["center_x"]
+                + radial_distance
+                * math.cos(angle)
+            )
+
+            center_y = (
+                cluster["center_y"]
+                + radial_distance
+                * math.sin(angle)
+            )
+
+            boundary_valid = (
+                center_x
+                - radius
+                + tolerance
+                >= args.min_boundary_spacing
+                and args.width
+                - center_x
+                - radius
+                + tolerance
+                >= args.min_boundary_spacing
+                and center_y
+                - radius
+                + tolerance
+                >= args.min_boundary_spacing
+                and args.height
+                - center_y
+                - radius
+                + tolerance
+                >= args.min_boundary_spacing
+            )
+
+            if not boundary_valid:
+                continue
+
+            spacing_valid = all(
+                particle_surface_gap(
+                    center_x,
+                    center_y,
+                    radius,
+                    existing,
+                )
+                + tolerance
+                >= args.min_particle_spacing
+                for existing in particles
+            )
+
+            if not spacing_valid:
+                continue
+
+            particles.append(
+                ClusteredParticle(
+                    particle_id=particle_id,
+                    center_x=center_x,
+                    center_y=center_y,
+                    radius=radius,
+                    placement_attempts=attempt,
+                    cluster_id=int(
+                        cluster["cluster_id"]
+                    ),
+                    distance_to_cluster_center=(
+                        radial_distance
+                    ),
+                )
+            )
+
+            placed = True
+            break
+
+        if not placed:
+            reason = (
+                "clustered_particle_placement_failed_for_particle_"
+                f"{particle_id}_after_"
+                f"{args.max_attempts_per_particle}_attempts"
+            )
+
+            arrangement_metadata = {
+                "cluster_count": args.cluster_count,
+                "cluster_radius": cluster_radius,
+                "min_cluster_center_distance": (
+                    min_cluster_center_distance
+                ),
+                "cluster_centers": cluster_centers,
+                "cluster_center_attempts": (
+                    total_cluster_attempts
+                ),
+                "particle_cluster_assignment": (
+                    "round_robin_v1"
+                ),
+                "candidate_distribution": (
+                    "uniform_area_within_bounded_"
+                    "cluster_disk_v1"
+                ),
+            }
+
+            return (
+                particles,
+                "invalid",
+                reason,
+                total_particle_attempts,
+                arrangement_metadata,
+            )
+
+    arrangement_metadata = {
+        "cluster_count": args.cluster_count,
+        "cluster_radius": cluster_radius,
+        "min_cluster_center_distance": (
+            min_cluster_center_distance
+        ),
+        "cluster_centers": cluster_centers,
+        "cluster_center_attempts": (
+            total_cluster_attempts
+        ),
+        "particle_cluster_assignment": (
+            "round_robin_v1"
+        ),
+        "candidate_distribution": (
+            "uniform_area_within_bounded_cluster_disk_v1"
+        ),
+    }
+
+    return (
+        particles,
+        "valid",
+        None,
+        total_particle_attempts,
+        arrangement_metadata,
+    )
+
+
 def build_metadata(
     args: argparse.Namespace,
     particles: list[Particle],
@@ -375,18 +793,15 @@ def build_metadata(
     }
 
 
-def main() -> int:
-    """Generate and print one geometry metadata record."""
-
-    args = parse_args()
-    validate_inputs(args)
-
-    (
-        particles,
-        status,
-        failure_reason,
-        total_attempts,
-    ) = generate_particles(args)
+def build_clustered_metadata(
+    args: argparse.Namespace,
+    particles: list[ClusteredParticle],
+    status: str,
+    failure_reason: str | None,
+    total_attempts: int,
+    arrangement_metadata: dict,
+) -> dict:
+    """Build metadata for the bounded clustered arrangement."""
 
     metadata = build_metadata(
         args,
@@ -395,6 +810,79 @@ def main() -> int:
         failure_reason,
         total_attempts,
     )
+
+    metadata["arrangement"] = (
+        "clustered_bounded_disk_rejection_v1"
+    )
+
+    metadata["arrangement_metadata"] = (
+        arrangement_metadata
+    )
+
+    cluster_radius = float(
+        args.cluster_radius
+    )
+
+    tolerance = 1.0e-12
+
+    cluster_constraint_ok = (
+        status == "valid"
+        and len(particles) == args.particle_count
+        and all(
+            particle.distance_to_cluster_center
+            <= cluster_radius + tolerance
+            for particle in particles
+        )
+    )
+
+    metadata["checks"][
+        "cluster_constraint_satisfied"
+    ] = cluster_constraint_ok
+
+    return metadata
+
+
+def main() -> int:
+    """Generate and print one geometry metadata record."""
+
+    args = parse_args()
+    validate_inputs(args)
+
+    if args.arrangement == "random":
+        (
+            particles,
+            status,
+            failure_reason,
+            total_attempts,
+        ) = generate_particles(args)
+
+        metadata = build_metadata(
+            args,
+            particles,
+            status,
+            failure_reason,
+            total_attempts,
+        )
+
+    else:
+        (
+            particles,
+            status,
+            failure_reason,
+            total_attempts,
+            arrangement_metadata,
+        ) = generate_clustered_particles(
+            args
+        )
+
+        metadata = build_clustered_metadata(
+            args,
+            particles,
+            status,
+            failure_reason,
+            total_attempts,
+            arrangement_metadata,
+        )
 
     print(
         json.dumps(
