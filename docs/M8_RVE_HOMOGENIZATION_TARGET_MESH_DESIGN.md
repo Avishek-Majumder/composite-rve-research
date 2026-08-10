@@ -586,11 +586,18 @@ Equivalently:
 `u(x_plus) - u(x_minus) =
  E_bar (x_plus - x_minus)`.
 
-Opposing boundary tractions must be anti-periodic in the converged
-solution.
+At the continuum level, opposing boundary tractions are anti-periodic.
+For the discrete displacement formulation used in M8, direct integration
+of the raw finite-element stress traction `sigma_h n` is retained as a
+mesh-sensitive diagnostic rather than an exact finite-mesh reaction-force
+gate. Its convergence behavior shall be documented during mesh
+verification.
 
-A rigid-body translation must be removed using a mathematically
-explicit reference constraint or equivalent zero-mean condition.
+A rigid-body translation must be removed using a mathematically explicit
+reference constraint or equivalent zero-mean condition. When DOLFINx-MPC
+is used, a pointwise reference constraint shall be placed only on a DOF
+block that is verified to intersect neither the MPC slave set nor the MPC
+master set. A strong Dirichlet gauge on an MPC master DOF is prohibited.
 
 PBC may only be used on a geometrically compatible periodized
 microstructure.
@@ -624,6 +631,15 @@ Possible implementation routes may include:
 - another technically justified DOLFINx-compatible approach.
 
 The backend shall be selected only after direct capability validation.
+
+Direct capability validation has now been completed in the isolated
+`composite-sim-m8-mpc-compat` environment using DOLFINx-MPC `0.11.0`
+with DOLFINx `0.11.0`. The protected `composite-sim` environment remains
+unchanged and does not contain `dolfinx_mpc`. For M8 PBC implementation,
+DOLFINx-MPC `0.11.0` is the validated backend unless a later
+evidence-based incompatibility requires an explicitly documented change.
+This does not authorize an incidental installation into the protected
+environment.
 
 ---
 
@@ -749,34 +765,68 @@ M9 will lock which of these fields become final ML targets/features.
 
 ## 21. Homogenization Verification Gates
 
-Before PBC can be accepted, each tested case must satisfy:
+Before PBC can be accepted, each tested case must satisfy the following
+hard gates:
 
 1. solver convergence;
 2. complete material tagging;
 3. correct gross/solid area accounting;
 4. periodic slave/master pairing completeness;
 5. periodic displacement-fluctuation constraint satisfaction;
-6. global force equilibrium;
-7. opposing-boundary traction compatibility where measured;
-8. finite macroscopic stress and strain;
-9. positive-definite symmetrized homogenized stiffness;
-10. Hill-Mandel energetic consistency.
+6. any pointwise rigid-translation gauge is independent of all MPC slave
+   and master DOFs and is exactly enforced;
+7. constrained algebraic equilibrium of the actual assembled MPC linear
+   system;
+8. finite macroscopic stress and strain with imposed macroscopic-strain
+   recovery;
+9. Hill-Mandel energetic consistency and the corresponding discrete weak-
+   stationarity identity;
+10. homogenized-stiffness symmetry within tolerance;
+11. positive-definite symmetrized homogenized stiffness.
 
-Initial numerical tolerances:
+Initial numerical tolerances after the validated PBC prototype are:
 
 - periodic displacement mismatch:
   relative or normalized error <= `1e-8`;
-- global equilibrium residual:
-  relative error <= `1e-8`;
-- homogenized stiffness symmetry:
-  `||C-C^T||_F / ||C||_F <= 1e-5`;
+- pointwise gauge value, where such a gauge is used:
+  maximum absolute value <= `1e-12`;
+- constrained algebraic equilibrium:
+  `||A x - b||_2 / max(||b||_2, 1) <= 1e-10`;
+- imposed macroscopic-strain recovery:
+  maximum absolute component error <= `1e-8`;
 - Hill-Mandel relative energy mismatch:
-  <= `1e-5`.
+  <= `1e-5`;
+- Hill-Mandel/weak-stationarity identity error:
+  <= `1e-10`;
+- homogenized stiffness symmetry:
+  `||C-C^T||_F / ||C||_F <= 1e-5`.
 
-These are initial numerical acceptance tolerances.
+Direct integration of raw `sigma_h n` on the external boundary is not a
+hard finite-mesh equilibrium gate for the current P1 displacement
+formulation. Where measured, opposing-boundary and net raw-traction
+resultants shall be retained as mesh-sensitive diagnostics and their mesh
+trend shall be reported.
 
-If solver/discretization evidence demonstrates that a tolerance requires
-revision, the revision must be documented rather than silently changed.
+This policy is supported by the transient M8 validation sequence. A
+bottom-left point gauge that lay on MPC master DOFs was not enforced and
+produced a Hill-Mandel relative mismatch of approximately `2.68e-4`. An
+MPC-independent interior gauge was enforced exactly and restored the
+Hill-Mandel mismatch to approximately `1e-15`. For the corrected X case,
+the raw net `sigma_h n` residual decreased from approximately `0.08475`
+to `0.05314` to `0.02856` as the mesh size decreased from `0.05` to
+`0.025` to `0.0125`, while Hill-Mandel remained at machine-precision
+scale. In the corrected X/Y/XY pilot at `h = 0.025`, the constrained
+algebraic relative residuals were approximately `2.86e-15`, `2.80e-15`
+and `4.81e-15`, respectively.
+
+The original Hill-Mandel tolerance was not relaxed. The previous generic
+`global equilibrium residual <= 1e-8` wording is therefore refined into
+the explicit constrained-algebraic equilibrium definition above, while
+raw finite-element boundary traction remains diagnostic.
+
+If later solver/discretization evidence demonstrates that a tolerance
+requires revision, the revision must be documented rather than silently
+changed.
 
 ---
 
