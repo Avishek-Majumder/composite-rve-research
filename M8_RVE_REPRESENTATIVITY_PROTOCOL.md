@@ -69,6 +69,23 @@ particle radius, number density, or analytical particle fraction.
 Every realization is generated independently using the permanent
 periodized random-uniform rejection generator.
 
+The stochastic geometry controls are locked across all RVE levels and
+all realizations:
+
+- minimum toroidal particle surface gap = 0.02
+- maximum placement attempts per particle = 20000
+
+The minimum-gap value is part of the stochastic geometry definition and
+must not vary with RVE size or realization.
+
+The maximum-attempt count is a deterministic generation/failure policy,
+not a material parameter. It is held fixed so that invalid-placement
+handling remains reproducible.
+
+A realization that cannot be generated under these locked controls must
+be recorded as invalid and must not be silently rerun with relaxed
+spacing, a different attempt limit, or a substitute seed.
+
 Periodic boundary-crossing particles are represented through the
 existing toroidal wrapped-image policy.
 
