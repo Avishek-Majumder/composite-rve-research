@@ -172,6 +172,91 @@ def bbox_inside_cell(
     )
 
 
+
+def disk_cell_intersection_classification(
+    center_x: float,
+    center_y: float,
+    radius: float,
+    cell_side: float,
+    tolerance: float = CAD_TOL,
+) -> tuple[str, float]:
+    """Classify a periodic disk relative to the closed square cell."""
+
+    values = (
+        center_x,
+        center_y,
+        radius,
+        cell_side,
+        tolerance,
+    )
+
+    if not all(
+        math.isfinite(value)
+        for value in values
+    ):
+        raise ValueError(
+            "disk/cell intersection inputs must be finite."
+        )
+
+    if radius <= 0.0:
+        raise ValueError(
+            "disk radius must be positive."
+        )
+
+    if cell_side <= 0.0:
+        raise ValueError(
+            "cell side must be positive."
+        )
+
+    if tolerance < 0.0:
+        raise ValueError(
+            "intersection tolerance must be non-negative."
+        )
+
+    nearest_x = min(
+        max(
+            center_x,
+            0.0,
+        ),
+        cell_side,
+    )
+
+    nearest_y = min(
+        max(
+            center_y,
+            0.0,
+        ),
+        cell_side,
+    )
+
+    distance_to_cell = math.hypot(
+        center_x - nearest_x,
+        center_y - nearest_y,
+    )
+
+    clearance = (
+        distance_to_cell
+        - radius
+    )
+
+    if clearance < -tolerance:
+        return (
+            "positive_area",
+            float(clearance),
+        )
+
+    if clearance > tolerance:
+        return (
+            "disjoint",
+            float(clearance),
+        )
+
+    return (
+        "ambiguous_tangent",
+        float(clearance),
+    )
+
+
 def curve_center_length(tag: int):
     center = gmsh.model.occ.getCenterOfMass(
         1,
@@ -913,6 +998,137 @@ def main() -> None:
         EXPECTED_CROSSING_IDS,
     )
 
+    representation_intersection_expected = {}
+    nonintersecting_bookkeeping_representations = []
+
+    for rep in representations:
+        representation_id = int(
+            rep[
+                "representation_id"
+            ]
+        )
+
+        (
+            intersection_class,
+            clearance,
+        ) = disk_cell_intersection_classification(
+            center_x=float(
+                rep[
+                    "center_x"
+                ]
+            ),
+            center_y=float(
+                rep[
+                    "center_y"
+                ]
+            ),
+            radius=float(
+                rep[
+                    "radius"
+                ]
+            ),
+            cell_side=L,
+            tolerance=CAD_TOL,
+        )
+
+        must(
+            intersection_class
+            != "ambiguous_tangent",
+            (
+                "periodic representation is not "
+                "tangent/near-tangent to the RVE "
+                f"(particle {rep['particle_id']}, "
+                f"shift=({rep['shift_x']},"
+                f"{rep['shift_y']}), "
+                f"clearance={clearance})"
+            ),
+        )
+
+        representation_intersection_expected[
+            representation_id
+        ] = (
+            intersection_class
+            == "positive_area"
+        )
+
+        if intersection_class == "disjoint":
+            nonintersecting_bookkeeping_representations.append(
+                {
+                    "representation_id":
+                        representation_id,
+                    "particle_id":
+                        int(
+                            rep[
+                                "particle_id"
+                            ]
+                        ),
+                    "shift_x":
+                        float(
+                            rep[
+                                "shift_x"
+                            ]
+                        ),
+                    "shift_y":
+                        float(
+                            rep[
+                                "shift_y"
+                            ]
+                        ),
+                    "clearance":
+                        float(
+                            clearance
+                        ),
+                }
+            )
+
+    expected_mesh_representation_count = sum(
+        1
+        for expected
+        in representation_intersection_expected.values()
+        if expected
+    )
+
+    must(
+        expected_mesh_representation_count
+        >= EXPECTED_PARTICLE_COUNT,
+        (
+            "positive-area periodic representation count "
+            "is not below physical particle count"
+        ),
+    )
+
+    must(
+        (
+            expected_mesh_representation_count
+            + len(
+                nonintersecting_bookkeeping_representations
+            )
+        )
+        == EXPECTED_REPRESENTATION_COUNT,
+        (
+            "positive-area plus disjoint bookkeeping "
+            "representations reproduce geometry metadata"
+        ),
+    )
+
+    print(
+        "Positive-area periodic representations:",
+        expected_mesh_representation_count,
+    )
+
+    print(
+        "Disjoint bookkeeping representations:",
+        len(
+            nonintersecting_bookkeeping_representations
+        ),
+    )
+
+    if nonintersecting_bookkeeping_representations:
+        print(
+            "Disjoint bookkeeping representation records:",
+            nonintersecting_bookkeeping_representations,
+        )
+
     gmsh.initialize()
 
     diagnostics = {}
@@ -1037,16 +1253,44 @@ def main() -> None:
                 )
             )
 
-            must(
-                len(mapped_inside) == 1,
-                (
-                    "each periodic disk representation maps "
-                    "to exactly one retained particle piece "
-                    f"(particle {rep['particle_id']}, "
-                    f"shift=({rep['shift_x']},"
-                    f"{rep['shift_y']}))"
-                ),
+            representation_id = int(
+                rep[
+                    "representation_id"
+                ]
             )
+
+            expected_to_intersect = (
+                representation_intersection_expected[
+                    representation_id
+                ]
+            )
+
+            if expected_to_intersect:
+                must(
+                    len(mapped_inside) == 1,
+                    (
+                        "each positive-area periodic disk "
+                        "representation maps to exactly one "
+                        "retained particle piece "
+                        f"(particle {rep['particle_id']}, "
+                        f"shift=({rep['shift_x']},"
+                        f"{rep['shift_y']}))"
+                    ),
+                )
+            else:
+                must(
+                    len(mapped_inside) == 0,
+                    (
+                        "each analytically disjoint periodic "
+                        "bookkeeping representation maps to "
+                        "no retained particle piece "
+                        f"(particle {rep['particle_id']}, "
+                        f"shift=({rep['shift_x']},"
+                        f"{rep['shift_y']}))"
+                    ),
+                )
+
+                continue
 
             surface_tag = mapped_inside[0]
 
@@ -1064,7 +1308,9 @@ def main() -> None:
             surface_to_particle_id[
                 surface_tag
             ] = int(
-                rep["particle_id"]
+                rep[
+                    "particle_id"
+                ]
             )
 
             particle_surface_tags.add(
@@ -1091,8 +1337,11 @@ def main() -> None:
 
         must(
             len(particle_surface_tags)
-            == EXPECTED_REPRESENTATION_COUNT,
-            "all periodic particle surface pieces retained",
+            == expected_mesh_representation_count,
+            (
+                "all positive-area periodic particle "
+                "surface pieces retained"
+            ),
         )
 
         must(
@@ -2069,6 +2318,17 @@ def main() -> None:
                     sorted(
                         y_particle_ids
                     )
+                ),
+                "mesh_intersecting_representation_count": (
+                    expected_mesh_representation_count
+                ),
+                "nonintersecting_bookkeeping_representation_count": (
+                    len(
+                        nonintersecting_bookkeeping_representations
+                    )
+                ),
+                "nonintersecting_bookkeeping_representations": (
+                    nonintersecting_bookkeeping_representations
                 ),
                 "particle_surface_piece_count": (
                     len(
