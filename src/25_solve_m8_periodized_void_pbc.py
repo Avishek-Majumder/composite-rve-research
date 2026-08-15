@@ -4796,7 +4796,7 @@ def main() -> int:
         )
 
         print(
-            "PASS — no Y, XY or high-severity response was executed"
+            "PASS — no other load case or expanded scientific scope was executed"
         )
 
         print(
@@ -4809,10 +4809,6 @@ def main() -> int:
         )
 
     elif args.solve_preflight_only:
-        must(
-            args.state == "baseline",
-            "current solve-preflight implementation is restricted to baseline state",
-        )
 
 
 
