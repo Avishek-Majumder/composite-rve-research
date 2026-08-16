@@ -18,7 +18,7 @@ FAMILY_SCHEMA = "m8_periodized_void_geometry_family_v1"
 MESH_SCHEMA = "m8_periodized_void_mesh_diagnostics_v1"
 
 AUTHORITIES = {
-    "M8_TARGET_MESH_PROTOCOL.md": "563b51a50493a54596218a725365c99022a689a01867112b5b77ae3b23baaa94",
+    "M8_TARGET_MESH_PROTOCOL.md": "0d993cdfe0739b21a6ef34d8d74d72491a10682a3f6968824df25010c8ebb55f",
     "src/18_generate_m7_void_mesh.py": "8455b280f0505910fe66708f3ed4a98f5a9bb097a459ea53ba18e07259f9a258",
     "src/21_generate_m8_periodized_mesh.py": "0713c46add5395bce97d8bdf03e52050310889935921f306d958be076d9cc3cc",
     "src/23_generate_m8_periodized_void_microstructure.py": "88bf346e3168f7a31386c7587b24d7df83e5712344b1b6ccc60be788d652c9dd",
