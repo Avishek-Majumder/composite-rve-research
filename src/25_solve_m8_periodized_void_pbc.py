@@ -37,7 +37,7 @@ EXPECTED_PHYSICAL_TAGS = {
 
 AUTHORITIES = {
     "M8_TARGET_MESH_PROTOCOL.md":
-        "563b51a50493a54596218a725365c99022a689a01867112b5b77ae3b23baaa94",
+        "0d993cdfe0739b21a6ef34d8d74d72491a10682a3f6968824df25010c8ebb55f",
     "src/22_solve_m8_periodized_pbc.py":
         "90079e56df7f2a74cac3b301e81cbaa0ea520ebcd1987f1ac7f81f4a6ee12e5b",
     "src/23_generate_m8_periodized_void_microstructure.py":
