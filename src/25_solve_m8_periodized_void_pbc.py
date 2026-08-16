@@ -49,6 +49,8 @@ AUTHORITIES = {
 }
 
 
+M8_PRODUCTION_QUADRATURE_DEGREE = 8
+
 def must(
     condition: bool,
     message: str,

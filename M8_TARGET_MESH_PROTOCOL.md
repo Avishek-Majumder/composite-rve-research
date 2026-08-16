@@ -321,6 +321,19 @@ The quadrature implementation must receive its own numerical-validation
 gate before full execution. Its quadrature order shall not be silently
 chosen without that implementation evidence.
 
+Following the authenticated R1 realization-1 baseline `h = 0.02048` X-load
+quadrature sensitivity study, the production quadrature degree is locked to
+`8`, the highest qualified candidate in the validated degree range `1..8`.
+For degrees `5`, `6`, `7`, and `8`, the authenticated `K_vm_tail10` values
+were `1.6964432100582205`, `1.6848696213086505`, `1.6821426180475985`, and
+`1.6889435327139473`, respectively. The full degree-5-to-8 range is
+`0.846718184097%` relative to the degree-8 value. This sensitivity is bounded
+but non-monotonic and is retained as empirical quadrature-sensitivity
+provenance; it is not a claim of monotone convergence or mathematical
+exactness of the annulus-masked local metric. Degree `4` was deliberately not
+required because another lower-order rule would not provide higher-order
+evidence for the selected degree-8 production rule.
+
 ## Local target-mesh verification case set
 
 After controlled defect implementation is authenticated, use all six R1
