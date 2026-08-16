@@ -45,7 +45,7 @@ AUTHORITIES = {
     "src/24_generate_m8_periodized_void_mesh.py":
         "0255a42103897bc9e8881c5a35d577ea16c916eaa13b0550875ff2edf640a38a",
     "src/26_m8_local_response.py":
-        "9d05f86f24f4139f74993dc80e725769cd5f7be6ef257b508eed0ea7b0bd7ba3",
+        "d73423d4e41fdc686e8bfd0825c0bead0c82103ec423fceb91e8b60d001bbaae",
 }
 
 
