@@ -271,6 +271,26 @@ def parse_args() -> argparse.Namespace:
         ),
     )
 
+    parser.add_argument(
+        "--quadrature-local-preflight-only",
+        action="store_true",
+        help=(
+            "Solve exactly one authenticated X-load true-hole PBC system, "
+            "evaluate the existing response, then extract the M8 matrix "
+            "quadrature local response using permanent src/26. An explicit "
+            "--quadrature-degree is required. No permanent output is written."
+        ),
+    )
+    parser.add_argument(
+        "--quadrature-degree",
+        type=int,
+        default=None,
+        help=(
+            "Explicit validation degree for --quadrature-local-preflight-only; "
+            "None otherwise. No production quadrature degree is selected."
+        ),
+    )
+
     return parser.parse_args()
 
 
@@ -378,6 +398,8 @@ def run_mpc_topology_preflight(
     particle_nu: float | None = None,
     evaluate_local_response: bool = False,
     physical_voids: list[dict] | None = None,
+    evaluate_quadrature_local_response: bool = False,
+    quadrature_degree: int | None = None,
 ) -> dict:
     """Authenticate DOLFINx import and periodic MPC topology only.
 
@@ -409,6 +431,17 @@ def run_mpc_topology_preflight(
                 list,
             ),
             "cell-local extraction received the selected physical-void list",
+        )
+
+    if evaluate_quadrature_local_response:
+        must(evaluate_response, "quadrature-local extraction requires response evaluation")
+        must(load_case == "X", "quadrature-local extraction is restricted to X load")
+        must(isinstance(physical_voids, list), "quadrature-local extraction received physical voids")
+        must(
+            isinstance(quadrature_degree, int)
+            and not isinstance(quadrature_degree, bool)
+            and 1 <= quadrature_degree <= 8,
+            "quadrature-local extraction requires explicit validation degree 1..8",
         )
 
     must(
@@ -2037,6 +2070,13 @@ def run_mpc_topology_preflight(
     local_response = None
     local_response_matrix_owned_cell_count = 0
     local_response_matrix_area_from_cells = None
+    quadrature_local_response_evaluated = False
+    quadrature_local_response = None
+    quadrature_local_degree = None
+    quadrature_local_reference_point_count = 0
+    quadrature_local_matrix_owned_cell_count = 0
+    quadrature_local_contribution_count = 0
+    quadrature_local_matrix_area_from_weights = None
 
     if solve_problem:
         from petsc4py import PETSc
@@ -3324,6 +3364,207 @@ def run_mpc_topology_preflight(
                 "PASS — permanent src/26 cell-local evaluator completed on the authenticated solved response"
             )
 
+        if evaluate_quadrature_local_response:
+            import basix
+
+            matrix_cells_all_q = np.asarray(cell_tags.find(int(matrix_tag)), dtype=np.int32)
+            owned_cell_count_q = int(cell_map.size_local)
+            matrix_owned_cells_q = np.asarray(
+                matrix_cells_all_q[matrix_cells_all_q < owned_cell_count_q],
+                dtype=np.int32,
+            )
+            must(matrix_owned_cells_q.size > 0, "quadrature-local extraction contains owned matrix cells")
+
+            q_points, q_weights_ref = basix.make_quadrature(
+                domain.basix_cell(),
+                int(quadrature_degree),
+            )
+            q_points = np.asarray(q_points, dtype=np.float64)
+            q_weights_ref = np.asarray(q_weights_ref, dtype=np.float64).reshape(-1)
+            must(
+                q_points.ndim == 2 and q_points.shape[1] == 2 and q_points.shape[0] > 0,
+                "quadrature-local reference points have valid triangle shape",
+            )
+            quadrature_local_reference_point_count = int(q_points.shape[0])
+            must(
+                q_weights_ref.shape == (quadrature_local_reference_point_count,),
+                "quadrature-local reference weights match reference-point count",
+            )
+            must(
+                bool(np.all(np.isfinite(q_points)))
+                and bool(np.all(np.isfinite(q_weights_ref)))
+                and bool(np.all(q_weights_ref > 0.0)),
+                "quadrature-local reference points/weights are finite and positive",
+            )
+
+            sigma_xx_q = sigma_matrix_response[0, 0]
+            sigma_yy_q = sigma_matrix_response[1, 1]
+            tau_xy_q = sigma_matrix_response[0, 1]
+            sigma_vm_q = ufl.sqrt(
+                sigma_xx_q * sigma_xx_q
+                - sigma_xx_q * sigma_yy_q
+                + sigma_yy_q * sigma_yy_q
+                + 3.0 * tau_xy_q * tau_xy_q
+            )
+
+            coord_expr_q = fem.Expression(ufl.SpatialCoordinate(domain), q_points)
+            detj_expr_q = fem.Expression(ufl.JacobianDeterminant(domain), q_points)
+            vm_expr_q = fem.Expression(sigma_vm_q, q_points)
+
+            coords_q = np.asarray(
+                coord_expr_q.eval(domain, matrix_owned_cells_q), dtype=np.float64
+            )
+            detj_q = np.asarray(
+                detj_expr_q.eval(domain, matrix_owned_cells_q), dtype=np.float64
+            )
+            vm_q = np.asarray(
+                vm_expr_q.eval(domain, matrix_owned_cells_q), dtype=np.float64
+            )
+            expected_scalar_shape_q = (
+                int(matrix_owned_cells_q.size),
+                quadrature_local_reference_point_count,
+            )
+            must(
+                coords_q.shape == expected_scalar_shape_q + (2,),
+                "quadrature-local physical-coordinate Expression shape is exact",
+            )
+            must(
+                detj_q.shape == expected_scalar_shape_q,
+                "quadrature-local detJ Expression shape is exact",
+            )
+            must(
+                vm_q.shape == expected_scalar_shape_q,
+                "quadrature-local von-Mises Expression shape is exact",
+            )
+
+            physical_weights_q = np.abs(detj_q) * q_weights_ref[None, :]
+            must(
+                bool(np.all(np.isfinite(coords_q)))
+                and bool(np.all(np.isfinite(detj_q)))
+                and bool(np.all(np.isfinite(vm_q)))
+                and bool(np.all(np.isfinite(physical_weights_q))),
+                "quadrature-local physical coordinates/stress/weights are finite",
+            )
+            must(
+                bool(np.all(vm_q >= 0.0))
+                and bool(np.all(physical_weights_q > 0.0)),
+                "quadrature-local stress is non-negative and physical weights are positive",
+            )
+
+            quadrature_local_matrix_area_from_weights = float(np.sum(physical_weights_q))
+            must(
+                math.isclose(
+                    quadrature_local_matrix_area_from_weights,
+                    float(response_runtime_matrix_area),
+                    rel_tol=1.0e-10,
+                    abs_tol=1.0e-10,
+                ),
+                "quadrature-local physical weights reproduce runtime matrix area",
+            )
+
+            coords_flat_q = np.asarray(coords_q.reshape(-1, 2), dtype=np.float64)
+            vm_flat_q = np.asarray(vm_q.reshape(-1), dtype=np.float64)
+            weights_flat_q = np.asarray(physical_weights_q.reshape(-1), dtype=np.float64)
+            quadrature_local_contribution_count = int(vm_flat_q.size)
+            must(
+                coords_flat_q.shape[0]
+                == quadrature_local_contribution_count
+                == weights_flat_q.size,
+                "quadrature-local flattened contributions align",
+            )
+
+            q_module_path = Path(__file__).resolve().with_name("26_m8_local_response.py")
+            q_spec = importlib.util.spec_from_file_location(
+                "_m8_quadrature_local_response_runtime",
+                q_module_path,
+            )
+            must(
+                q_spec is not None and q_spec.loader is not None,
+                "permanent src/26 quadrature module specification is loadable",
+            )
+            q_module = importlib.util.module_from_spec(q_spec)
+            q_spec.loader.exec_module(q_module)
+            q_evaluator = getattr(
+                q_module,
+                "evaluate_m8_matrix_vm_annulus_quadrature_tail10",
+                None,
+            )
+            q_metric_id = getattr(q_module, "M8_QUADRATURE_METRIC_ID", None)
+            must(callable(q_evaluator), "permanent src/26 quadrature evaluator is callable")
+            must(
+                isinstance(q_metric_id, str) and len(q_metric_id) > 0,
+                "permanent src/26 quadrature metric identifier is available",
+            )
+
+            quadrature_local_response = q_evaluator(
+                quadrature_point_coordinates=coords_flat_q,
+                sigma_vm_values=vm_flat_q,
+                quadrature_area_weights=weights_flat_q,
+                physical_voids=physical_voids,
+                width=width,
+                height=height,
+                macro_sigma_11=response_sigma_11,
+            )
+            must(
+                isinstance(quadrature_local_response, dict),
+                "quadrature-local evaluator returned diagnostics",
+            )
+            must(
+                quadrature_local_response.get("metric_id") == q_metric_id,
+                "quadrature-local metric identifier matches permanent src/26 authority",
+            )
+            must(
+                quadrature_local_response.get("status") == "valid",
+                "positive-void quadrature-local response status is valid",
+            )
+            q_K = float(quadrature_local_response["K_vm_tail10"])
+            must(
+                math.isfinite(q_K) and q_K >= 0.0,
+                "quadrature-local K_vm_tail10 is finite and non-negative",
+            )
+            must(
+                math.isclose(
+                    float(quadrature_local_response["normalization_abs_Sigma_11"]),
+                    abs(float(response_sigma_11)),
+                    rel_tol=0.0,
+                    abs_tol=1.0e-12,
+                ),
+                "quadrature-local normalization uses exact gross-RVE abs(Sigma_11)",
+            )
+
+            quadrature_local_degree = int(quadrature_degree)
+            quadrature_local_matrix_owned_cell_count = int(matrix_owned_cells_q.size)
+            quadrature_local_response_evaluated = True
+            print()
+            print("QUADRATURE_LOCAL_PREFLIGHT_DEGREE=", quadrature_local_degree)
+            print(
+                "QUADRATURE_LOCAL_PREFLIGHT_REFERENCE_POINT_COUNT=",
+                quadrature_local_reference_point_count,
+            )
+            print(
+                "QUADRATURE_LOCAL_PREFLIGHT_MATRIX_OWNED_CELL_COUNT=",
+                quadrature_local_matrix_owned_cell_count,
+            )
+            print(
+                "QUADRATURE_LOCAL_PREFLIGHT_CONTRIBUTION_COUNT=",
+                quadrature_local_contribution_count,
+            )
+            print(
+                "QUADRATURE_LOCAL_PREFLIGHT_MATRIX_AREA_FROM_WEIGHTS=",
+                quadrature_local_matrix_area_from_weights,
+            )
+            print(
+                "QUADRATURE_LOCAL_PREFLIGHT_SIGMA_VM_TAIL10=",
+                quadrature_local_response["sigma_vm_tail10"],
+            )
+            print(
+                "QUADRATURE_LOCAL_PREFLIGHT_K_VM_TAIL10=",
+                quadrature_local_response["K_vm_tail10"],
+            )
+            print(
+                "PASS — permanent src/26 quadrature-local evaluator completed on the authenticated solved response"
+            )
+
         print()
         print(
             "PASS — discrete runtime phase areas match the authenticated FE mesh authority"
@@ -3489,6 +3730,20 @@ def run_mpc_topology_preflight(
             local_response_matrix_owned_cell_count,
         "local_response_matrix_area_from_cells":
             local_response_matrix_area_from_cells,
+        "quadrature_local_response_evaluated":
+            quadrature_local_response_evaluated,
+        "quadrature_local_response":
+            quadrature_local_response,
+        "quadrature_local_degree":
+            quadrature_local_degree,
+        "quadrature_local_reference_point_count":
+            quadrature_local_reference_point_count,
+        "quadrature_local_matrix_owned_cell_count":
+            quadrature_local_matrix_owned_cell_count,
+        "quadrature_local_contribution_count":
+            quadrature_local_contribution_count,
+        "quadrature_local_matrix_area_from_weights":
+            quadrature_local_matrix_area_from_weights,
         "solve_petsc_convergence_reason":
             solve_petsc_convergence_reason,
         "solve_petsc_iterations":
@@ -3527,6 +3782,7 @@ def main() -> int:
             args.solve_preflight_only,
             args.response_preflight_only,
             args.cell_local_preflight_only,
+            args.quadrature_local_preflight_only,
         )
     )
 
@@ -3537,6 +3793,18 @@ def main() -> int:
             "preflight modes are mutually exclusive"
         ),
     )
+
+
+    if args.quadrature_local_preflight_only:
+        must(
+            args.quadrature_degree is not None and 1 <= args.quadrature_degree <= 8,
+            "quadrature-local preflight requires explicit validation degree 1..8",
+        )
+    else:
+        must(
+            args.quadrature_degree is None,
+            "--quadrature-degree is accepted only with --quadrature-local-preflight-only",
+        )
 
 
     repo = (
@@ -5148,6 +5416,74 @@ def main() -> int:
         print(
             "M8_PERIODIZED_VOID_PBC_LOAD_VALIDATION_OK"
         )
+
+    elif args.quadrature_local_preflight_only:
+        must(
+            args.load_case == "X",
+            "quadrature-local preflight is restricted to the M8 X PBC load",
+        )
+        must(
+            isinstance(state.get("voids"), list),
+            "selected geometry state exposes physical void records",
+        )
+        q_preflight = run_mpc_topology_preflight(
+            args.mesh,
+            mesh_diag,
+            width,
+            height,
+            create_gauge_bc=True,
+            create_forms=True,
+            create_linear_problem=True,
+            solve_problem=True,
+            evaluate_response=True,
+            load_case=args.load_case,
+            macro_amplitude=macro_amplitude,
+            matrix_E=matrix_E,
+            matrix_nu=matrix_nu,
+            particle_E=particle_E,
+            particle_nu=particle_nu,
+            physical_voids=state["voids"],
+            evaluate_quadrature_local_response=True,
+            quadrature_degree=args.quadrature_degree,
+        )
+        must(
+            q_preflight["fem_solve_performed"] is True,
+            "quadrature-local preflight reused exactly one authenticated FEM solve path",
+        )
+        must(
+            q_preflight["response_evaluated"] is True,
+            "quadrature-local preflight reused authenticated response evaluation",
+        )
+        must(
+            q_preflight["quadrature_local_response_evaluated"] is True,
+            "quadrature-local preflight evaluated the M8 quadrature response",
+        )
+        must(
+            q_preflight["quadrature_local_degree"] == args.quadrature_degree,
+            "quadrature-local diagnostics retain the explicit requested degree",
+        )
+        must(
+            isinstance(q_preflight["quadrature_local_response"], dict)
+            and q_preflight["quadrature_local_response"]["status"] == "valid",
+            "quadrature-local preflight returned valid diagnostics",
+        )
+        print()
+        print(
+            "True-hole quadrature local-response preflight diagnostics = "
+            + json.dumps(q_preflight["quadrature_local_response"], sort_keys=True)
+        )
+        print()
+        print("PASS — explicit validation quadrature degree was supplied")
+        print("PASS — authoritative physical void records were used")
+        print("PASS — physical quadrature coordinates and area weights were used")
+        print("PASS — quadrature weights reproduce runtime matrix area")
+        print("PASS — local normalization used gross-RVE abs(Sigma_11)")
+        print("PASS — permanent load-validation JSON was not written")
+        print("PASS — no production quadrature degree/order was selected")
+        print("PASS — no twelve-case local target-mesh study was executed")
+        print("PASS — no machine learning occurred")
+        print()
+        print("M8_PERIODIZED_VOID_PBC_QUADRATURE_LOCAL_PREFLIGHT_OK")
 
     elif args.cell_local_preflight_only:
         must(
