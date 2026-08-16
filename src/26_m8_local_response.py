@@ -731,3 +731,360 @@ def evaluate_m8_matrix_vm_annulus_cell_tail10(
             K_vm_tail10
         ),
     }
+
+
+M8_QUADRATURE_METRIC_ID = (
+    "m8_matrix_vm_annulus_quadrature_tail10_v1"
+)
+
+
+def evaluate_m8_matrix_vm_annulus_quadrature_tail10(
+    quadrature_point_coordinates,
+    sigma_vm_values,
+    quadrature_area_weights,
+    physical_voids,
+    width,
+    height,
+    macro_sigma_11,
+) -> dict:
+    """Evaluate the M8 matrix von-Mises quadrature annulus metric.
+
+    This pure numerical kernel consumes physical quadrature-point
+    coordinates and their already-transformed physical area weights.
+    It does not construct a quadrature rule, choose a rule/order,
+    import a scientific mesh, solve mechanics, or write results.
+
+    The physical annulus is the toroidal union
+
+        r_i < d_T(x, c_i) <= 2 * r_i
+
+    over authoritative physical void records.  A physical quadrature
+    contribution lying in multiple annuli is retained once by the union
+    mask.  The upper-tail statistic uses the same protected upper 10%
+    physical-area semantics as the permanent M8 cell metric.
+
+    K_vm_tail10 is normalized by abs(Sigma_11), where Sigma_11 is the
+    gross-RVE macroscopic X-load stress supplied by the FE layer.
+    """
+
+    points = np.asarray(
+        quadrature_point_coordinates,
+        dtype=np.float64,
+    )
+
+    if (
+        points.ndim != 2
+        or points.shape[1] != 2
+    ):
+        raise ValueError(
+            "quadrature_point_coordinates must have shape (n, 2)."
+        )
+
+    if not bool(
+        np.all(
+            np.isfinite(
+                points
+            )
+        )
+    ):
+        raise ValueError(
+            "Quadrature-point coordinates must be finite."
+        )
+
+    sigma_vm = np.asarray(
+        sigma_vm_values,
+        dtype=np.float64,
+    ).reshape(-1)
+
+    area_weights = np.asarray(
+        quadrature_area_weights,
+        dtype=np.float64,
+    ).reshape(-1)
+
+    point_count = int(
+        points.shape[0]
+    )
+
+    if (
+        sigma_vm.size
+        != point_count
+    ):
+        raise ValueError(
+            "sigma_vm_values length must match quadrature-point count."
+        )
+
+    if (
+        area_weights.size
+        != point_count
+    ):
+        raise ValueError(
+            "quadrature_area_weights length must match quadrature-point count."
+        )
+
+    if not bool(
+        np.all(
+            np.isfinite(
+                sigma_vm
+            )
+        )
+    ):
+        raise ValueError(
+            "Quadrature von-Mises values must be finite."
+        )
+
+    if bool(
+        np.any(
+            sigma_vm < 0.0
+        )
+    ):
+        raise ValueError(
+            "Quadrature von-Mises values must be non-negative."
+        )
+
+    if not bool(
+        np.all(
+            np.isfinite(
+                area_weights
+            )
+        )
+    ):
+        raise ValueError(
+            "Quadrature physical area weights must be finite."
+        )
+
+    if bool(
+        np.any(
+            area_weights <= 0.0
+        )
+    ):
+        raise ValueError(
+            "Quadrature physical area weights must be strictly positive."
+        )
+
+    canonical_voids = (
+        _validated_physical_voids(
+            physical_voids=physical_voids,
+            width=width,
+            height=height,
+        )
+    )
+
+    if len(
+        canonical_voids
+    ) == 0:
+        return {
+            "metric_id":
+                M8_QUADRATURE_METRIC_ID,
+            "status":
+                "not_applicable",
+            "reason":
+                "zero_void_geometry",
+            "tail_fraction":
+                float(
+                    M8_LOCAL_TAIL_FRACTION
+                ),
+            "physical_void_count":
+                0,
+            "quadrature_point_count":
+                point_count,
+            "neighborhood_quadrature_point_count":
+                0,
+            "neighborhood_matrix_area":
+                None,
+            "upper_tail_effective_area":
+                None,
+            "upper_tail_contributing_quadrature_point_count":
+                0,
+            "fractional_cutoff_used":
+                None,
+            "raw_max_sigma_vm":
+                None,
+            "area_weighted_neighborhood_mean_sigma_vm":
+                None,
+            "sigma_vm_tail10":
+                None,
+            "normalization_abs_Sigma_11":
+                None,
+            "K_vm_tail10":
+                None,
+        }
+
+    macro_sigma_11 = float(
+        macro_sigma_11
+    )
+
+    if (
+        not math.isfinite(
+            macro_sigma_11
+        )
+        or abs(
+            macro_sigma_11
+        ) <= 0.0
+    ):
+        raise ValueError(
+            "Positive-void quadrature metric requires finite, "
+            "non-zero Sigma_11."
+        )
+
+    mask = (
+        matrix_cell_annulus_union_mask(
+            matrix_cell_midpoints=points,
+            physical_voids=physical_voids,
+            width=width,
+            height=height,
+        )
+    )
+
+    neighborhood_count = int(
+        np.count_nonzero(
+            mask
+        )
+    )
+
+    if neighborhood_count <= 0:
+        raise RuntimeError(
+            "Positive-void geometry produced no eligible "
+            "quadrature contributions in the locked annulus neighborhood."
+        )
+
+    statistics = (
+        area_weighted_upper_tail_statistics(
+            values=sigma_vm[
+                mask
+            ],
+            areas=area_weights[
+                mask
+            ],
+            tail_fraction=(
+                M8_LOCAL_TAIL_FRACTION
+            ),
+        )
+    )
+
+    normalization = abs(
+        macro_sigma_11
+    )
+
+    K_vm_tail10 = (
+        statistics[
+            "tail_mean"
+        ]
+        / normalization
+    )
+
+    if (
+        not math.isfinite(
+            K_vm_tail10
+        )
+        or K_vm_tail10 < 0.0
+    ):
+        raise RuntimeError(
+            "Normalized quadrature local response is invalid."
+        )
+
+    tolerance = (
+        1.0e-12
+        * max(
+            1.0,
+            abs(
+                statistics[
+                    "raw_max"
+                ]
+            ),
+        )
+    )
+
+    if not (
+        statistics[
+            "raw_max"
+        ]
+        + tolerance
+        >= statistics[
+            "tail_mean"
+        ]
+        and statistics[
+            "tail_mean"
+        ]
+        + tolerance
+        >= statistics[
+            "area_weighted_mean"
+        ]
+    ):
+        raise RuntimeError(
+            "Quadrature local-response ordering sanity failed."
+        )
+
+    return {
+        "metric_id":
+            M8_QUADRATURE_METRIC_ID,
+        "status":
+            "valid",
+        "reason":
+            None,
+        "tail_fraction":
+            float(
+                M8_LOCAL_TAIL_FRACTION
+            ),
+        "physical_void_count":
+            int(
+                len(
+                    canonical_voids
+                )
+            ),
+        "quadrature_point_count":
+            point_count,
+        "neighborhood_quadrature_point_count":
+            int(
+                neighborhood_count
+            ),
+        "neighborhood_matrix_area":
+            float(
+                statistics[
+                    "total_area"
+                ]
+            ),
+        "upper_tail_effective_area":
+            float(
+                statistics[
+                    "effective_tail_area"
+                ]
+            ),
+        "upper_tail_contributing_quadrature_point_count":
+            int(
+                statistics[
+                    "contributing_cell_count"
+                ]
+            ),
+        "fractional_cutoff_used":
+            bool(
+                statistics[
+                    "fractional_cutoff_used"
+                ]
+            ),
+        "raw_max_sigma_vm":
+            float(
+                statistics[
+                    "raw_max"
+                ]
+            ),
+        "area_weighted_neighborhood_mean_sigma_vm":
+            float(
+                statistics[
+                    "area_weighted_mean"
+                ]
+            ),
+        "sigma_vm_tail10":
+            float(
+                statistics[
+                    "tail_mean"
+                ]
+            ),
+        "normalization_abs_Sigma_11":
+            float(
+                normalization
+            ),
+        "K_vm_tail10":
+            float(
+                K_vm_tail10
+            ),
+    }
