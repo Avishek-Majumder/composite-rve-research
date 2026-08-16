@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import math
 from pathlib import Path
@@ -43,6 +44,8 @@ AUTHORITIES = {
         "88bf346e3168f7a31386c7587b24d7df83e5712344b1b6ccc60be788d652c9dd",
     "src/24_generate_m8_periodized_void_mesh.py":
         "0255a42103897bc9e8881c5a35d577ea16c916eaa13b0550875ff2edf640a38a",
+    "src/26_m8_local_response.py":
+        "9d05f86f24f4139f74993dc80e725769cd5f7be6ef257b508eed0ea7b0bd7ba3",
 }
 
 
@@ -256,6 +259,18 @@ def parse_args() -> argparse.Namespace:
         ),
     )
 
+    parser.add_argument(
+        "--cell-local-preflight-only",
+        action="store_true",
+        help=(
+            "Reconstruct and solve exactly one authenticated X-load "
+            "true-hole PBC system, evaluate the existing homogenized "
+            "response, then extract only the M8 matrix-cell local "
+            "response using permanent src/26. No permanent output "
+            "is written."
+        ),
+    )
+
     return parser.parse_args()
 
 
@@ -361,6 +376,8 @@ def run_mpc_topology_preflight(
     matrix_nu: float | None = None,
     particle_E: float | None = None,
     particle_nu: float | None = None,
+    evaluate_local_response: bool = False,
+    physical_voids: list[dict] | None = None,
 ) -> dict:
     """Authenticate DOLFINx import and periodic MPC topology only.
 
@@ -374,8 +391,25 @@ def run_mpc_topology_preflight(
 
     import dolfinx
     import dolfinx_mpc
-    from dolfinx import fem
+    from dolfinx import fem, mesh
     from dolfinx.io import gmsh as gmshio
+
+    if evaluate_local_response:
+        must(
+            evaluate_response,
+            "cell-local extraction requires authenticated response evaluation",
+        )
+        must(
+            load_case == "X",
+            "cell-local extraction is restricted to the M8 X PBC load",
+        )
+        must(
+            isinstance(
+                physical_voids,
+                list,
+            ),
+            "cell-local extraction received the selected physical-void list",
+        )
 
     must(
         dolfinx.__version__ == "0.11.0",
@@ -1999,6 +2033,11 @@ def run_mpc_topology_preflight(
     response_weak_stationarity_value = None
     response_weak_stationarity_relative = None
 
+    local_response_evaluated = False
+    local_response = None
+    local_response_matrix_owned_cell_count = 0
+    local_response_matrix_area_from_cells = None
+
     if solve_problem:
         from petsc4py import PETSc
 
@@ -2927,6 +2966,364 @@ def run_mpc_topology_preflight(
 
         response_evaluated = True
 
+        if evaluate_local_response:
+            must(
+                physical_voids is not None,
+                "cell-local extraction has physical void input",
+            )
+
+            matrix_cells_all_local = np.asarray(
+                cell_tags.find(
+                    int(
+                        matrix_tag
+                    )
+                ),
+                dtype=np.int32,
+            )
+
+            owned_cell_count_local = int(
+                cell_map.size_local
+            )
+
+            matrix_owned_cells_local = np.asarray(
+                matrix_cells_all_local[
+                    matrix_cells_all_local
+                    < owned_cell_count_local
+                ],
+                dtype=np.int32,
+            )
+
+            must(
+                matrix_owned_cells_local.size > 0,
+                "cell-local extraction contains owned matrix cells",
+            )
+
+            matrix_midpoints_xyz_local = (
+                mesh.compute_midpoints(
+                    domain,
+                    tdim,
+                    matrix_owned_cells_local,
+                )
+            )
+
+            must(
+                matrix_midpoints_xyz_local.ndim == 2
+                and matrix_midpoints_xyz_local.shape[0]
+                == matrix_owned_cells_local.size
+                and matrix_midpoints_xyz_local.shape[1] >= 2,
+                "cell-local physical matrix-cell midpoints have valid shape",
+            )
+
+            matrix_midpoints_local = np.asarray(
+                matrix_midpoints_xyz_local[
+                    :,
+                    :2,
+                ],
+                dtype=np.float64,
+            )
+
+            sigma_xx_local = (
+                sigma_matrix_response[
+                    0,
+                    0,
+                ]
+            )
+            sigma_yy_local = (
+                sigma_matrix_response[
+                    1,
+                    1,
+                ]
+            )
+            tau_xy_local = (
+                sigma_matrix_response[
+                    0,
+                    1,
+                ]
+            )
+
+            sigma_vm_local = ufl.sqrt(
+                sigma_xx_local
+                * sigma_xx_local
+                - sigma_xx_local
+                * sigma_yy_local
+                + sigma_yy_local
+                * sigma_yy_local
+                + 3.0
+                * tau_xy_local
+                * tau_xy_local
+            )
+
+            reference_midpoint_local = np.array(
+                [
+                    [
+                        1.0 / 3.0,
+                        1.0 / 3.0,
+                    ]
+                ],
+                dtype=np.float64,
+            )
+
+            vm_expression_local = fem.Expression(
+                sigma_vm_local,
+                reference_midpoint_local,
+            )
+
+            area_expression_local = fem.Expression(
+                ufl.CellVolume(
+                    domain
+                ),
+                reference_midpoint_local,
+            )
+
+            local_vm_values = np.asarray(
+                vm_expression_local.eval(
+                    domain,
+                    matrix_owned_cells_local,
+                ),
+                dtype=np.float64,
+            ).reshape(
+                matrix_owned_cells_local.size,
+                -1,
+            )[
+                :,
+                0,
+            ]
+
+            local_cell_areas = np.asarray(
+                area_expression_local.eval(
+                    domain,
+                    matrix_owned_cells_local,
+                ),
+                dtype=np.float64,
+            ).reshape(
+                matrix_owned_cells_local.size,
+                -1,
+            )[
+                :,
+                0,
+            ]
+
+            must(
+                bool(
+                    np.all(
+                        np.isfinite(
+                            local_vm_values
+                        )
+                    )
+                ),
+                "cell-local matrix von-Mises values are finite",
+            )
+
+            must(
+                bool(
+                    np.all(
+                        local_vm_values >= 0.0
+                    )
+                ),
+                "cell-local matrix von-Mises values are non-negative",
+            )
+
+            must(
+                bool(
+                    np.all(
+                        np.isfinite(
+                            local_cell_areas
+                        )
+                    )
+                    and np.all(
+                        local_cell_areas > 0.0
+                    )
+                ),
+                "cell-local physical matrix-cell areas are finite and positive",
+            )
+
+            local_response_matrix_area_from_cells = float(
+                np.sum(
+                    local_cell_areas
+                )
+            )
+
+            must(
+                math.isclose(
+                    local_response_matrix_area_from_cells,
+                    float(
+                        response_runtime_matrix_area
+                    ),
+                    rel_tol=1.0e-10,
+                    abs_tol=1.0e-10,
+                ),
+                "cell-local physical cell areas reproduce runtime matrix area",
+            )
+
+            local_module_path = (
+                Path(__file__)
+                .resolve()
+                .with_name(
+                    "26_m8_local_response.py"
+                )
+            )
+
+            local_spec = (
+                importlib.util.spec_from_file_location(
+                    "_m8_local_response_runtime",
+                    local_module_path,
+                )
+            )
+
+            must(
+                local_spec is not None
+                and local_spec.loader is not None,
+                "permanent src/26 module specification is loadable",
+            )
+
+            local_module = (
+                importlib.util.module_from_spec(
+                    local_spec
+                )
+            )
+
+            local_spec.loader.exec_module(
+                local_module
+            )
+
+            local_evaluator = getattr(
+                local_module,
+                "evaluate_m8_matrix_vm_annulus_cell_tail10",
+                None,
+            )
+
+            must(
+                callable(
+                    local_evaluator
+                ),
+                "permanent src/26 cell evaluator is callable",
+            )
+
+            local_metric_authority = getattr(
+                local_module,
+                "M8_CELL_METRIC_ID",
+                None,
+            )
+
+            must(
+                isinstance(
+                    local_metric_authority,
+                    str,
+                )
+                and len(
+                    local_metric_authority
+                ) > 0,
+                "permanent src/26 cell metric identifier is available",
+            )
+
+            local_response = local_evaluator(
+                matrix_cell_midpoints=(
+                    matrix_midpoints_local
+                ),
+                sigma_vm_values=(
+                    local_vm_values
+                ),
+                cell_areas=(
+                    local_cell_areas
+                ),
+                physical_voids=(
+                    physical_voids
+                ),
+                width=width,
+                height=height,
+                macro_sigma_11=(
+                    response_sigma_11
+                ),
+            )
+
+            must(
+                isinstance(
+                    local_response,
+                    dict,
+                ),
+                "cell-local evaluator returned a diagnostics dictionary",
+            )
+
+            must(
+                local_response.get(
+                    "metric_id"
+                )
+                == local_metric_authority,
+                "cell-local metric identifier matches permanent src/26 authority",
+            )
+
+            must(
+                local_response.get(
+                    "status"
+                )
+                == "valid",
+                "positive-void cell-local response status is valid",
+            )
+
+            local_K = float(
+                local_response[
+                    "K_vm_tail10"
+                ]
+            )
+
+            must(
+                math.isfinite(
+                    local_K
+                )
+                and local_K >= 0.0,
+                "cell-local K_vm_tail10 is finite and non-negative",
+            )
+
+            must(
+                math.isclose(
+                    float(
+                        local_response[
+                            "normalization_abs_Sigma_11"
+                        ]
+                    ),
+                    abs(
+                        float(
+                            response_sigma_11
+                        )
+                    ),
+                    rel_tol=0.0,
+                    abs_tol=1.0e-12,
+                ),
+                "cell-local normalization uses exact gross-RVE abs(Sigma_11)",
+            )
+
+            local_response_matrix_owned_cell_count = int(
+                matrix_owned_cells_local.size
+            )
+
+            local_response_evaluated = True
+
+            print()
+            print(
+                "CELL_LOCAL_PREFLIGHT_MATRIX_OWNED_CELL_COUNT=",
+                local_response_matrix_owned_cell_count,
+            )
+            print(
+                "CELL_LOCAL_PREFLIGHT_MATRIX_AREA_FROM_CELLS=",
+                local_response_matrix_area_from_cells,
+            )
+            print(
+                "CELL_LOCAL_PREFLIGHT_SIGMA_VM_TAIL10=",
+                local_response[
+                    "sigma_vm_tail10"
+                ],
+            )
+            print(
+                "CELL_LOCAL_PREFLIGHT_K_VM_TAIL10=",
+                local_response[
+                    "K_vm_tail10"
+                ],
+            )
+
+            print(
+                "PASS — permanent src/26 cell-local evaluator completed on the authenticated solved response"
+            )
+
         print()
         print(
             "PASS — discrete runtime phase areas match the authenticated FE mesh authority"
@@ -3084,6 +3481,14 @@ def run_mpc_topology_preflight(
             response_weak_stationarity_value,
         "response_weak_stationarity_relative":
             response_weak_stationarity_relative,
+        "local_response_evaluated":
+            local_response_evaluated,
+        "local_response":
+            local_response,
+        "local_response_matrix_owned_cell_count":
+            local_response_matrix_owned_cell_count,
+        "local_response_matrix_area_from_cells":
+            local_response_matrix_area_from_cells,
         "solve_petsc_convergence_reason":
             solve_petsc_convergence_reason,
         "solve_petsc_iterations":
@@ -3121,6 +3526,7 @@ def main() -> int:
             args.linear_problem_preflight_only,
             args.solve_preflight_only,
             args.response_preflight_only,
+            args.cell_local_preflight_only,
         )
     )
 
@@ -4741,6 +5147,130 @@ def main() -> int:
         print()
         print(
             "M8_PERIODIZED_VOID_PBC_LOAD_VALIDATION_OK"
+        )
+
+    elif args.cell_local_preflight_only:
+        must(
+            args.load_case == "X",
+            "cell-local preflight is restricted to the M8 X PBC load",
+        )
+
+        must(
+            isinstance(
+                state.get(
+                    "voids"
+                ),
+                list,
+            ),
+            "selected geometry state exposes physical void records",
+        )
+
+        cell_local_preflight = run_mpc_topology_preflight(
+            args.mesh,
+            mesh_diag,
+            width,
+            height,
+            create_gauge_bc=True,
+            create_forms=True,
+            create_linear_problem=True,
+            solve_problem=True,
+            evaluate_response=True,
+            load_case=args.load_case,
+            macro_amplitude=macro_amplitude,
+            matrix_E=matrix_E,
+            matrix_nu=matrix_nu,
+            particle_E=particle_E,
+            particle_nu=particle_nu,
+            evaluate_local_response=True,
+            physical_voids=state[
+                "voids"
+            ],
+        )
+
+        must(
+            cell_local_preflight[
+                "fem_solve_performed"
+            ]
+            is True,
+            "cell-local preflight reused exactly one authenticated FEM solve path",
+        )
+
+        must(
+            cell_local_preflight[
+                "response_evaluated"
+            ]
+            is True,
+            "cell-local preflight reused authenticated homogenized response evaluation",
+        )
+
+        must(
+            cell_local_preflight[
+                "local_response_evaluated"
+            ]
+            is True,
+            "cell-local preflight evaluated the M8 cell local response",
+        )
+
+        must(
+            isinstance(
+                cell_local_preflight[
+                    "local_response"
+                ],
+                dict,
+            ),
+            "cell-local preflight returned local-response diagnostics",
+        )
+
+        must(
+            cell_local_preflight[
+                "local_response"
+            ][
+                "status"
+            ]
+            == "valid",
+            "cell-local preflight local-response status is valid",
+        )
+
+        print()
+        print(
+            "True-hole cell local-response preflight diagnostics = "
+            + json.dumps(
+                cell_local_preflight[
+                    "local_response"
+                ],
+                sort_keys=True,
+            )
+        )
+
+        print()
+        print(
+            "PASS — selected physical void records were handed to permanent src/26"
+        )
+        print(
+            "PASS — periodic computational void representations were not used"
+        )
+        print(
+            "PASS — owned matrix-cell midpoint von-Mises extraction used physical cell areas"
+        )
+        print(
+            "PASS — local normalization used gross-RVE abs(Sigma_11)"
+        )
+        print(
+            "PASS — permanent load-validation JSON was not written"
+        )
+        print(
+            "PASS — quadrature implementation/order remains deferred"
+        )
+        print(
+            "PASS — no twelve-case local target-mesh study was executed"
+        )
+        print(
+            "PASS — no machine learning occurred"
+        )
+
+        print()
+        print(
+            "M8_PERIODIZED_VOID_PBC_CELL_LOCAL_PREFLIGHT_OK"
         )
 
     elif args.response_preflight_only:
