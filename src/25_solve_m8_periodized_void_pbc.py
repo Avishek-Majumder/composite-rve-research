@@ -43,7 +43,7 @@ AUTHORITIES = {
     "src/23_generate_m8_periodized_void_microstructure.py":
         "88bf346e3168f7a31386c7587b24d7df83e5712344b1b6ccc60be788d652c9dd",
     "src/24_generate_m8_periodized_void_mesh.py":
-        "0255a42103897bc9e8881c5a35d577ea16c916eaa13b0550875ff2edf640a38a",
+        "c5a726bf0a3c0fe51875ba370d725b211722356a8b3eee6ff2fe505fb441a773",
     "src/26_m8_local_response.py":
         "d73423d4e41fdc686e8bfd0825c0bead0c82103ec423fceb91e8b60d001bbaae",
 }
