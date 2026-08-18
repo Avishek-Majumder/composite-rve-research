@@ -1,11 +1,11 @@
 # Composite RVE Research — Project Status
 
-**Last verified milestone checkpoint:** 9 August 2026
+**Last verified milestone checkpoint:** 18 August 2026
 **Research route:** Simulation + Machine Learning only
 **Laboratory experiments:** None
-**Current completed major milestone:** M7 — Circular Void Defects + Defect-Sensitive Response Definition
-**Next major milestone:** M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
-**M7 implementation status:** 100% COMPLETE
+**Current completed major milestone:** M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
+**Next major milestone:** M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset
+**M8 implementation status:** 100% COMPLETE
 **Authoritative post-M5 roadmap:** `docs/Secondary_Planning.docx`
 
 ---
@@ -36,7 +36,7 @@ The original Project 01 planning remains the historical initial scope. The post-
 | M5        | 100% COMPLETE | Initial perfect-bonding FEM dataset generation                                         |
 | M6        | 100% COMPLETE | Multiple/Random-Particle Microstructure Foundation                                     |
 | M7        | 100% COMPLETE | Circular Void Defects and Defect-Sensitive Response Definition                         |
-| M8        | NOT STARTED   | RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification |
+| M8        | 100% COMPLETE | RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification |
 | M9        | NOT STARTED   | Final Parameter-Space Lock and Stochastic Pilot Dataset                                |
 | M10       | NOT STARTED   | Main Quality-Controlled FEM Simulation Database                                        |
 | M11       | NOT STARTED   | Baseline Machine-Learning Models and Grouped Validation                                |
@@ -51,8 +51,8 @@ The original Project 01 planning remains the historical initial scope. The post-
 The project-plan alignment audit concluded that the work through M5
 is scientifically valid and should be retained.
 
-M4 and M5 are interpreted as **inserted parametric, automation, and
-baseline-data foundation milestones**. They do not replace the
+M4 and M5 remain interpreted as inserted parametric, automation, and
+baseline-data foundation milestones. They do not replace the later
 random-microstructure, defect, RVE/PBC, stochastic-dataset,
 active-learning, uncertainty, or OOD stages from the original
 research plan.
@@ -61,21 +61,33 @@ The corrected roadmap therefore continues sequentially through
 M6-M14.
 
 M6 completed the multiple/random-particle microstructure foundation.
+M7 completed the circular true-hole defect and defect-sensitive
+response foundation.
 
-M7 has now completed and validated the Version-1 circular matrix-void
-extension, true-hole conformal meshing, void-capable elasticity
-response, controlled defect-severity checks, defect-sensitive local
-response definition, response-specific mesh evidence, and
-random/clustered implementation coverage.
+M8 is now scientifically COMPLETE under its permanent protocols and
+authenticated checkpoints. M8 closed the RVE-size/statistical-
+representativity study, the periodized homogenization/PBC
+verification programme, and the final target-mesh/local-response
+verification.
+
+The accepted representative RVE is R1, the accepted production
+target mesh is `h = 0.02048`, and `h = 0.010` is retained as the
+numerical fine-reference mesh.
+
+The selected M8 local metric is
+`m8_matrix_vm_annulus_quadrature_tail10_v1` at production
+quadrature degree `8`.
 
 The next scientific milestone is:
 
-> **M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification**
+> **M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset**
 
-M8 must not begin until the M7 closure-status update has been
-validated, committed, pushed to GitHub, repository synchronization
-has been verified, and the user explicitly confirms the M8
-transition.
+M9 remains NOT STARTED.
+
+No M9 scientific execution may begin until the M8 closure
+documentation commit is staged deliberately, committed, pushed,
+authenticated against `origin/main` and public GitHub main, and the
+user explicitly confirms the M9 transition.
 
 ---
 
@@ -117,7 +129,7 @@ It is **not** the final defect-sensitive stochastic research dataset and must no
 
 ---
 
-## 5. Physics and Terminology Guardrails Through M6
+## 5. Physics and Terminology Guardrails Through M8
 
 The following assumptions describe the validated mechanics used through the M6 foundation and must not be changed silently:
 
@@ -138,8 +150,9 @@ The following assumptions describe the validated mechanics used through the M6 f
 - M5/M6 validation mesh size = `0.02048`.
 - Effective axial modulus and effective Poisson response remain the primary validated global effective-property outputs.
 - Local stress extrema remain diagnostic only and are not accepted as fully mesh-converged final ML targets.
-- Final homogenization BC/PBC verification remains an M8 task.
-- Final stochastic target-mesh verification remains an M8 task.
+- M8 homogenization BC/PBC verification is COMPLETE under the permanent M8 authorities.
+- M8 accepted production target mesh = `0.02048`; `h = 0.010` is retained only as the numerical fine-reference mesh.
+- Selected M8 local metric = `m8_matrix_vm_annulus_quadrature_tail10_v1` with production quadrature degree `8`.
 
 The centered particle at `(0.5, 0.5)` with radius `0.20` remains specifically the D0-PB centered-single-inclusion reference problem. It is not the M6 stochastic geometry assumption.
 
@@ -432,38 +445,41 @@ Those requirements remain assigned to later milestones in `docs/Secondary_Planni
 
 ---
 
-## 10. Remaining Scientific Roadmap After M7
+## 10. Remaining Scientific Roadmap After M8
 
-M7 completes the Version-1 circular-void and defect-sensitive-response
-foundation, but it does not complete the full research programme.
+M8 completes the locked RVE-size/statistical-representativity,
+periodized homogenization/PBC verification, and final target-mesh/
+local-response verification programme, but it does not complete the
+full research programme.
 
 The project still requires:
 
-1. RVE-size/statistical-representativity verification.
-2. Final homogenization boundary-condition / PBC verification.
-3. Final stochastic target-mesh verification.
-4. Final stochastic parameter-space locking.
-5. Continued geometry, mesh, solver, runtime, failure, and provenance recording.
-6. A quality-controlled stochastic pilot dataset.
-7. A quality-controlled main FEM simulation database.
-8. Grouped/leakage-safe ML validation.
-9. Active learning versus random sampling at equal FEM budgets.
-10. Quantitative uncertainty calibration.
-11. Separation of microstructure variability from model uncertainty.
-12. Deliberate out-of-distribution testing.
-13. Final ablations, figures, reproducibility evidence, and manuscript analysis.
+1. Final parameter-space locking and stochastic pilot design.
+2. Continued geometry, mesh, solver, runtime, failure, and provenance recording.
+3. A quality-controlled stochastic pilot dataset.
+4. A quality-controlled main FEM simulation database.
+5. Grouped/leakage-safe ML validation.
+6. Active learning versus random sampling at equal FEM budgets.
+7. Quantitative uncertainty calibration.
+8. Separation of microstructure variability from model uncertainty.
+9. Deliberate out-of-distribution testing.
+10. Final ablations, figures, reproducibility evidence, and manuscript analysis.
 
-The M5, M6, and M7 validation cases must not be silently promoted into
-the final stochastic research dataset.
+The M5, M6, M7, and M8 validation/verification cases must not be
+silently promoted into the final stochastic research dataset.
 
-The M7 local metric
-`m7_matrix_vm_annulus_tail10_v1` is accepted as the validated
-Version-1 defect-sensitive response candidate for continued research
-use, but it is not yet promoted to the final ML target.
+The protected M7 local-response identifier
+`m7_matrix_vm_annulus_tail10_v1` remains unchanged as historical M7
+authority.
 
-Final target promotion remains conditional on the later verification
-owned by M8, including the final homogenization BC/PBC decision and
-final production target-mesh verification.
+M8 selected the distinct quadrature-based local metric
+`m8_matrix_vm_annulus_quadrature_tail10_v1` for the locked M8
+framework because it preserved the intended physical annulus/tail
+semantics while showing lower authenticated mesh dependence.
+
+That M8 selection does not by itself establish the final machine-
+learning target or a production stochastic dataset. Those later
+decisions remain subject to M9 and subsequent milestones.
 
 ---
 
@@ -726,7 +742,7 @@ Those responsibilities remain in later milestones, beginning with M8.
 
 `90e3902807fde5bc353564e879c0aeb73c3f817f5711264f231ae8e4db385edf`
 
-The Secondary Planning document remains unchanged at M6 closure because it is the authoritative roadmap and historical planning record.
+The Secondary Planning document remains unchanged through M8 closure because it is the authoritative roadmap and historical planning record.
 
 Its statement that M6 had not started refers explicitly to the project state **at the time of that planning revision**. Current execution state is maintained in `PROJECT_STATUS.md`.
 
@@ -783,40 +799,114 @@ Research work follows these rules:
 
 ---
 
-## 16. Immediate Next Gate
+## 16. M8 Completion Summary
+
+### M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
+
+M8 scientific execution and decision-making are COMPLETE.
+
+**Permanent RVE representativity checkpoint**
+
+`M8_RVE_REPRESENTATIVITY_CHECKPOINT.md`
+
+**SHA-256**
+
+`0f129f26c63dbf173572189d6c28ef43cf310920f2f5d1c5e1775ab8649fe420`
+
+Authenticated RVE decision:
+
+- accepted representative level: `R1`;
+- accepted side length: `1.0`;
+- accepted gross area: `1.0`;
+- physical particle count: `16`;
+- all R1-R5 statistical levels resolved under the locked protocol;
+- R1 is the smallest eligible tested level satisfying every locked
+  comparison against the larger resolved levels.
+
+M8 also completed the required periodized PBC/homogenization
+verification before the final target-mesh decision.
+
+**Permanent final target-mesh checkpoint**
+
+`M8_TARGET_MESH_CHECKPOINT.md`
+
+**SHA-256**
+
+`2cc4b55f15a5da2f9d6922de8032ad14b736e8768329ed90f22f4f08d9e1f5a8`
+
+Authenticated final target-mesh/local-response decision:
+
+- production target mesh: `h = 0.02048`;
+- numerical fine reference: `h = 0.010`;
+- selected M8 local metric:
+  `m8_matrix_vm_annulus_quadrature_tail10_v1`;
+- production quadrature degree: `8`;
+- six pristine R1 global target-mesh comparisons: PASS;
+- 24/24 durable Stage-8 FEM/PBC results authenticated;
+- 12/12 selected-metric two-mesh defect cases represented;
+- baseline cases: `6/6`;
+- high-severity cases: `6/6`;
+- selected-metric median `delta_K`: `0.48368166407152385%`;
+- selected-metric maximum `delta_K`: `1.1265826061942061%`;
+- median `<=3%` local acceptance criterion: PASS;
+- no individual case `>5%`: PASS;
+- no realization or severity was removed or response-selected;
+- protected M7 metric identifier remains unchanged.
+
+`h = 0.010` is a numerical comparison reference and is not claimed
+to be an exact continuum solution.
+
+The M8 conclusions apply only to the locked established computational
+model class and do not claim universal applicability to arbitrary
+materials, constitutive laws, geometries, dimensions, or physics.
+
+M8 did not create the final stochastic research dataset and did not
+perform machine learning.
+
+---
+## 17. Immediate Next Gate
 
 Current scientific state:
 
-- **M0-M7:** 100% COMPLETE.
-- **Post-M5 alignment audit:** COMPLETE.
-- **Secondary Planning:** APPROVED and validated.
-- **M6 implementation and closure:** COMPLETE.
-- **M7 Version-1 circular void implementation:** COMPLETE and validated.
-- **M7 true-hole meshing:** COMPLETE and validated.
-- **M7 gross-RVE global response:** COMPLETE and validated.
-- **M7 defect-sensitive local-response candidate:** COMPLETE and validated.
-- **M7 controlled severity and response-specific mesh evidence:** COMPLETE.
-- **M7 random/clustered implementation coverage:** COMPLETE.
-- **M8 implementation:** NOT STARTED.
+- **M0-M8:** scientific milestone work COMPLETE.
+- **M8 RVE representativity:** COMPLETE / PASS; R1 accepted.
+- **M8 periodized homogenization/PBC verification:** COMPLETE / PASS.
+- **M8 production target mesh:** `h = 0.02048` ACCEPTED.
+- **M8 fine numerical reference:** `h = 0.010`.
+- **M8 selected local metric:**
+  `m8_matrix_vm_annulus_quadrature_tail10_v1`.
+- **M8 production quadrature degree:** `8`.
+- **M8 local two-mesh evidence:** 12/12 cases PASS.
+- **M8 durable Stage-8 execution evidence:** 24/24 authenticated.
+- **M9 implementation:** NOT STARTED.
 - **Final stochastic research dataset:** NOT YET GENERATED.
 - **Final research ML:** NOT READY TO START.
 
-The next repository gate is to validate this M7 closure-status update,
-stage only `PROJECT_STATUS.md`, commit it, push it to `origin/main`,
-verify local/remote synchronization, and finish with a clean working
-tree.
+The current repository-governance gate is M8 closure only.
 
-Only after that closure checkpoint is complete should M7 be formally
-closed in the guided workflow.
+Before any M9 scientific execution:
 
-The next major milestone must then require explicit user confirmation
-before beginning:
+1. install this audited `PROJECT_STATUS.md` update;
+2. inspect exact Git changes;
+3. stage only `M8_TARGET_MESH_CHECKPOINT.md` and `PROJECT_STATUS.md`;
+4. audit the exact staged bytes;
+5. commit the M8 closure documentation;
+6. push to `origin/main`;
+7. authenticate `HEAD = origin/main = public GitHub main`;
+8. verify zero divergence and a clean working tree.
 
-> **M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification**
+Git-ignored scientific raw JSON results and full solver logs remain
+durable local provenance and must not be force-added merely to publish
+them.
 
-M8 owns the final RVE-size/statistical-representativity study, final
-homogenization BC/PBC verification, and final production stochastic
-target-mesh verification.
+Only after that repository closure is authenticated may M8 be treated
+as permanently closed in the guided workflow.
 
-No M8 implementation should occur before that explicit transition
-confirmation.
+The next major milestone is:
+
+> **M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset**
+
+M9 requires explicit user confirmation before any implementation or
+scientific execution begins.
+
+No machine learning is authorized at this stage.
