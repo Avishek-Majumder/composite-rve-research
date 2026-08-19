@@ -1,11 +1,13 @@
 # Composite RVE Research — Project Status
 
-**Last verified milestone checkpoint:** 18 August 2026
+**Last verified milestone checkpoint:** 19 August 2026
 **Research route:** Simulation + Machine Learning only
 **Laboratory experiments:** None
 **Current completed major milestone:** M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
-**Next major milestone:** M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset
+**Current active major milestone:** M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset
 **M8 implementation status:** 100% COMPLETE
+**M9 implementation status:** IN PROGRESS — Steps 1-3B complete; Step 4 next
+**M9 design authority:** `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`
 **Authoritative post-M5 roadmap:** `docs/Secondary_Planning.docx`
 
 ---
@@ -37,7 +39,7 @@ The original Project 01 planning remains the historical initial scope. The post-
 | M6        | 100% COMPLETE | Multiple/Random-Particle Microstructure Foundation                                     |
 | M7        | 100% COMPLETE | Circular Void Defects and Defect-Sensitive Response Definition                         |
 | M8        | 100% COMPLETE | RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification |
-| M9        | NOT STARTED   | Final Parameter-Space Lock and Stochastic Pilot Dataset                                |
+| M9        | IN PROGRESS   | Final Parameter-Space Lock and Stochastic Pilot Dataset — Steps 1-3B complete          |
 | M10       | NOT STARTED   | Main Quality-Controlled FEM Simulation Database                                        |
 | M11       | NOT STARTED   | Baseline Machine-Learning Models and Grouped Validation                                |
 | M12       | NOT STARTED   | Active Learning versus Random Sampling                                                 |
@@ -78,16 +80,28 @@ The selected M8 local metric is
 `m8_matrix_vm_annulus_quadrature_tail10_v1` at production
 quadrature degree `8`.
 
-The next scientific milestone is:
+The current scientific milestone is:
 
 > **M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset**
 
-M9 remains NOT STARTED.
+M9 is now IN PROGRESS after successful read-only authentication of the
+final Pre-M9 repository authority.
 
-No M9 scientific execution may begin until the M8 closure
-documentation commit is staged deliberately, committed, pushed,
-authenticated against `origin/main` and public GitHub main, and the
-user explicitly confirms the M9 transition.
+The permanent current M9 design record is:
+
+`docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`
+
+M9 Steps 1-3B are closed at their current scope:
+
+- Step 1: repository handoff authentication PASS;
+- Step 2: literature/novelty refresh PASS with a refined novelty boundary;
+- Step 3A: final model-output architecture conceptually locked;
+- Step 3B: final model-input architecture conceptually locked.
+
+Exact numerical parameter ranges remain unlocked and belong to M9 Step 4.
+
+No stochastic M9 pilot, M10 production database generation, or
+machine-learning training is authorized at this checkpoint.
 
 ---
 
@@ -477,9 +491,11 @@ M8 selected the distinct quadrature-based local metric
 framework because it preserved the intended physical annulus/tail
 semantics while showing lower authenticated mesh dependence.
 
-That M8 selection does not by itself establish the final machine-
-learning target or a production stochastic dataset. Those later
-decisions remain subject to M9 and subsequent milestones.
+That M8 selection did not by itself establish the final machine-
+learning target or a production stochastic dataset. M9 Step 3A has
+now adopted the authenticated X-load quadrature-tail metric as the
+primary local defect-sensitive response `K_vm_tail10_X`, while the
+production stochastic dataset remains ungenerated and unauthorized.
 
 ---
 
@@ -864,49 +880,79 @@ M8 did not create the final stochastic research dataset and did not
 perform machine learning.
 
 ---
-## 17. Immediate Next Gate
+
+## 17. Current M9 Gate
 
 Current scientific state:
 
-- **M0-M8:** scientific milestone work COMPLETE.
-- **M8 RVE representativity:** COMPLETE / PASS; R1 accepted.
-- **M8 periodized homogenization/PBC verification:** COMPLETE / PASS.
-- **M8 production target mesh:** `h = 0.02048` ACCEPTED.
-- **M8 fine numerical reference:** `h = 0.010`.
-- **M8 selected local metric:**
-  `m8_matrix_vm_annulus_quadrature_tail10_v1`.
-- **M8 production quadrature degree:** `8`.
-- **M8 local two-mesh evidence:** 12/12 cases PASS.
-- **M8 durable Stage-8 execution evidence:** 24/24 authenticated.
-- **M9 implementation:** NOT STARTED.
-- **Final stochastic research dataset:** NOT YET GENERATED.
-- **Final research ML:** NOT READY TO START.
+- **M0-M8:** scientific milestone work COMPLETE / CLOSED.
+- **Pre-M9 prerequisites:** COMPLETE / CLOSED.
+- **M9 Step 1:** read-only repository handoff authentication PASS / CLOSED.
+- **M9 Step 2:** current literature/novelty refresh PASS / CLOSED with refined novelty boundary.
+- **M9 Step 3A:** final model-output architecture PASS / conceptually locked.
+- **M9 Step 3B:** final model-input architecture PASS / conceptually locked.
+- **M9 Step 4:** NOT STARTED.
+- **Final numerical M9 parameter ranges:** NOT YET LOCKED.
+- **Stochastic M9 pilot:** NOT AUTHORIZED.
+- **M10 production FEM database:** NOT AUTHORIZED.
+- **Machine-learning training:** NOT AUTHORIZED.
 
-The current repository-governance gate is M8 closure only.
+Permanent M9 design authority:
 
-Before any M9 scientific execution:
+`docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`
 
-1. install this audited `PROJECT_STATUS.md` update;
-2. inspect exact Git changes;
-3. stage only `M8_TARGET_MESH_CHECKPOINT.md` and `PROJECT_STATUS.md`;
-4. audit the exact staged bytes;
-5. commit the M8 closure documentation;
-6. push to `origin/main`;
-7. authenticate `HEAD = origin/main = public GitHub main`;
-8. verify zero divergence and a clean working tree.
+The immediate next scientific gate is:
 
-Git-ignored scientific raw JSON results and full solver logs remain
-durable local provenance and must not be force-added merely to publish
-them.
+> **M9 Step 4 — Final Parameter-Range Lock**
 
-Only after that repository closure is authenticated may M8 be treated
-as permanently closed in the guided workflow.
+The currently locked baseline physical input vector is:
 
-The next major milestone is:
+`X = [Ep_over_Em, nu_matrix, nu_particle, particle_area_fraction_requested, void_area_fraction_requested, void_count]`
 
-> **M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset**
+The currently locked response architecture retains:
 
-M9 requires explicit user confirmation before any implementation or
-scientific execution begins.
+- the complete recovered normalized in-plane homogenized stiffness response;
+- `Ex_over_Em`;
+- `Ey_over_Em`;
+- `Gxy_over_Em`;
+- `nu_xy`;
+- `nu_yx`;
+- authenticated X-load local response `K_vm_tail10_X` for valid defective cases.
 
-No machine learning is authorized at this stage.
+No isotropy or orthotropy projection is authorized.
+
+`C16` and `C26` must not be silently forced to zero.
+
+For pristine cases, `K_vm_tail10_X` is undefined rather than zero.
+
+Before parameter ranges are frozen, each numerical bound must be scientifically
+justified for the restricted normalized 2D isotropic, small-strain,
+linear-elastic, plane-stress particle/true-void model class.
+
+Previously discussed planning ranges are not automatically authorized.
+
+After Step 4, M9 must still complete:
+
+1. material/normalization lock;
+2. geometry/defect/feasibility lock;
+3. stochastic reproducibility policy;
+4. pilot-design and QC lock;
+5. targeted transfer-validation across deliberately difficult/extreme
+   production conditions;
+6. formal pilot authorization.
+
+The stochastic M9 pilot may begin only after all preceding M9 gates pass.
+
+Machine-learning training remains unauthorized throughout M9 and remains
+unauthorized until the M10 quality-controlled FEM database and its
+QC/provenance gates are formally closed.
+
+The public Git repository must not be represented as a complete historical
+backup of Git-ignored raw scientific evidence.
+
+Git-ignored scientific outputs, solver logs, meshes, figures, and other
+generated evidence remain governed by the existing provenance and
+non-overwrite policies.
+
+No stochastic realization may be overwritten or cherry-picked because its
+response appears more desirable.
