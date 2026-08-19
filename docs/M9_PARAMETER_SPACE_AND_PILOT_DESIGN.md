@@ -12,9 +12,9 @@
 
 **Current M9 state:** IN PROGRESS
 
-**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, and 4
+**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, 4, and 5
 
-**Next scientific gate:** Step 5 — Material and Normalization Lock
+**Next scientific gate:** Step 6 — Geometry, Defect, and Feasibility Lock
 
 **Stochastic M9 pilot:** NOT AUTHORIZED
 
@@ -444,9 +444,9 @@ represents particle-to-matrix stiffness contrast.
 The arbitrary absolute reference value of `E_matrix` is not used as an
 ordinary ML predictor in the normalized framework.
 
-The numerical material-property domains are now locked under M9 Step 4.
-Permitted material anchors and normalization details remain subject to
-M9 Step 5.
+The numerical material-property domains are locked under M9 Step 4.
+M9 Step 5 now locks the material-scale, normalization, and reference-anchor
+policy recorded in Section 19.
 
 ### 7.3 Requested particle area fraction
 
@@ -1088,16 +1088,309 @@ Machine-learning training remains unauthorized.
 
 ---
 
-## 19. Remaining exact M9 sequence
+## 19. M9 Step 5 — Material and normalization lock
 
-M9 Step 4 is now complete.
+### Status
+
+**PASS / CONCEPTUALLY LOCKED**
+
+M9 Step 5 fixes how constituent elastic properties, geometry scale, and
+mechanical responses are normalized and interpreted throughout the principal
+M9/M10 computational database.
+
+This step does not expand the constitutive model beyond the already locked
+two-dimensional isotropic, small-strain, linear-elastic, plane-stress scope.
+
+### 19.1 Fixed internal matrix-modulus scale
+
+The internal solver reference modulus remains:
+
+`E_matrix = 1000`
+
+This is a computational reference scale.
+
+It is:
+
+- not an ordinary ML predictor;
+- not independently sampled;
+- not a claim that the matrix represents a specific named real material.
+
+The physical stiffness design variable remains:
+
+`Ep_over_Em`
+
+and therefore:
+
+`E_particle = Ep_over_Em * E_matrix`.
+
+With the Step-4 locked contrast domain:
+
+`Ep_over_Em in [2, 30]`
+
+the corresponding internal solver particle modulus spans:
+
+`E_particle in [2000, 30000]`.
+
+Those internal dimensional-looking values are numerical realizations of the
+dimensionless modulus contrast. The scientific input remains `Ep_over_Em`.
+
+### 19.2 Common modulus-scale invariance
+
+For the fixed geometry, fixed Poisson ratios, small-strain linear-elastic
+constitutive law, and prescribed macroscopic-strain periodic cell problem,
+consider multiplying both constituent stiffness tensors by the same positive
+constant `alpha`.
+
+Equivalently:
+
+`E_matrix -> alpha * E_matrix`
+
+and:
+
+`E_particle -> alpha * E_particle`
+
+while all Poisson ratios and geometry remain unchanged.
+
+Because the linear cell problem uses the same common stiffness scale in the
+equilibrium operator and imposed-macrostrain contribution, the periodic
+displacement/fluctuation solution is unchanged by that common positive scale.
+
+Local stresses, macroscopic stresses, and dimensional homogenized stiffness
+then scale by `alpha`.
+
+Therefore the principal normalized responses remain invariant to this common
+modulus scale:
+
+- `Cbar / E_matrix`
+- `Ex_over_Em`
+- `Ey_over_Em`
+- `Gxy_over_Em`
+- `nu_xy`
+- `nu_yx`
+- `K_vm_tail10_X`
+
+where:
+
+`K_vm_tail10_X = sigma_vm_tail10_X / abs_Sigma11_X`.
+
+The numerator and denominator of `K_vm_tail10_X` scale by the same common
+modulus factor.
+
+This scale-invariance statement applies to the currently locked linear,
+prescribed-strain/PBC framework. It must not be generalized automatically to
+nonlinear constitutive laws, different loading control, damage, plasticity,
+contact, or other physics outside the publication scope.
+
+### 19.3 Numerical-scale policy
+
+The project deliberately retains one stable internal modulus scale rather than
+sampling arbitrary common absolute Young-modulus magnitudes.
+
+This avoids introducing a scientifically redundant feature into the design
+space and avoids unnecessary variation in numerical coefficient/residual
+magnitude and in the behavior of absolute solver tolerances or finite-precision
+scaling.
+
+A common positive scalar multiple of the assembled linear stiffness operator
+does not change its matrix condition number in exact arithmetic:
+
+`kappa(alpha*A) = kappa(A)` for `alpha > 0`.
+
+Therefore no conditioning improvement is claimed from choosing
+`E_matrix = 1000`; the purpose of the fixed scale is normalization consistency
+and numerical reproducibility.
+
+The normalized material physics is represented by the modulus contrast and
+the two independent Poisson ratios.
+
+### 19.4 Poisson-ratio policy
+
+The material inputs:
+
+- `nu_matrix`
+- `nu_particle`
+
+remain separate dimensionless physical inputs.
+
+They are not replaced by:
+
+- a Poisson-ratio ratio;
+- a common Poisson ratio;
+- an isotropic projection of the effective response.
+
+Their Step-4 ranges remain:
+
+- `nu_matrix in [0.25, 0.40]`
+- `nu_particle in [0.15, 0.30]`.
+
+### 19.5 Canonical global normalization
+
+The canonical global FEM output remains the complete actually recovered:
+
+`Cbar / E_matrix`.
+
+Retain all nine normalized in-plane components:
+
+- `C11_over_Em`
+- `C12_over_Em`
+- `C16_over_Em`
+- `C21_over_Em`
+- `C22_over_Em`
+- `C26_over_Em`
+- `C61_over_Em`
+- `C62_over_Em`
+- `C66_over_Em`
+
+Derived global engineering responses remain:
+
+- `Ex_over_Em`
+- `Ey_over_Em`
+- `Gxy_over_Em`
+- `nu_xy`
+- `nu_yx`.
+
+Because `nu_xy` and `nu_yx` are already dimensionless, no further modulus
+normalization is applied to them.
+
+No isotropy or orthotropy projection is introduced.
+
+`C16` and `C26` must not be silently forced to zero.
+
+### 19.6 Canonical local normalization
+
+The selected local defect-sensitive metric remains:
+
+`m8_matrix_vm_annulus_quadrature_tail10_v1`
+
+under X periodic loading.
+
+The primary normalized local response remains:
+
+`K_vm_tail10_X`
+
+with:
+
+`K_vm_tail10_X = sigma_vm_tail10_X / abs_Sigma11_X`.
+
+Supporting quantities may retain the internal solver stress units for
+provenance:
+
+- `sigma_vm_tail10_X`
+- `abs_Sigma11_X`.
+
+The primary ML-facing local response remains the normalized dimensionless
+ratio.
+
+No Y/XY local metric is created by this Step-5 lock.
+
+### 19.7 Length normalization
+
+The principal RVE side length remains:
+
+`L = 1`.
+
+Coordinates, radii, clearances, and other geometric lengths are interpreted
+relative to this RVE side length.
+
+No additional absolute physical length scale is introduced into the principal
+M9/M10 database.
+
+This preserves the existing normalized geometric framework.
+
+### 19.8 Permanent reference computational anchor
+
+The permanent reference state remains:
+
+- `E_matrix = 1000`
+- `E_particle = 10000`
+- `nu_matrix = 0.30`
+- `nu_particle = 0.25`
+
+equivalently:
+
+- `Ep_over_Em = 10`
+- `nu_matrix = 0.30`
+- `nu_particle = 0.25`.
+
+Its roles are limited to:
+
+- continuity with authenticated M0-M8 work;
+- regression/reference checks;
+- interpretation of historical authenticated results;
+- an interior reference point within the final M9 domain.
+
+It is a **computational reference anchor**.
+
+It must not be silently labeled as:
+
+- epoxy/SiC;
+- aluminum/ceramic;
+- glass/polymer;
+- or any other named real material system.
+
+### 19.9 Named-material-anchor policy
+
+No additional named real-material system is introduced as a separate
+production anchor in the principal M9/M10 database.
+
+A later publication may include a clearly labeled illustrative dimensional
+mapping if useful.
+
+Such a mapping must be described as illustrative only and must not be treated
+as:
+
+- experimental validation;
+- a separate FEM training domain;
+- evidence that the framework was validated for that named material;
+- authorization to expand beyond the locked isotropic linear-elastic scope.
+
+There remains no experimental validation.
+
+The project does not claim that the framework works for all materials.
+
+### 19.10 Formulation traceability
+
+The Step-5 scaling argument follows directly from the linear periodic
+homogenization formulation in which:
+
+- microscopic stress satisfies a linear elasticity law;
+- macroscopic stress is obtained by cell averaging;
+- homogenized stiffness linearly maps imposed macroscopic strain to
+  macroscopic stress.
+
+An implementation-level reference formulation is:
+
+“Periodic homogenization of linear elasticity,”
+Computational Mechanics Numerical Tours with FEniCSx.
+
+Reference page:
+
+`https://bleyerj.github.io/comet-fenicsx/tours/homogenization/periodic_elasticity/periodic_elasticity.html`
+
+This reference supports the linear periodic-homogenization formulation.
+The common-modulus-scale invariance used here is the project-specific
+algebraic consequence of applying a common positive stiffness scale to that
+linear prescribed-strain cell problem.
+
+### 19.11 Step-5 non-authorizations
+
+Step 5 does not authorize:
+
+- changing the constitutive model;
+- introducing nonlinear material behavior;
+- introducing named real-material production anchors;
+- stochastic pilot execution;
+- M10 production FEM generation;
+- machine-learning training.
+
+Exact geometry clearance, feasibility, and rejection rules remain assigned to
+M9 Step 6.
+
+### 19.12 Remaining exact M9 sequence
+
+M9 Steps 1-5 are now complete at their currently authorized scope.
 
 The remaining scientific sequence is:
-
-### Step 5 — Material and normalization lock
-
-Preserve the normalized framework and define permitted material anchors
-without expanding claims beyond the restricted model class.
 
 ### Step 6 — Geometry, defect, and feasibility lock
 
@@ -1197,9 +1490,11 @@ At creation of this document:
 - M9 Step 4 overall:
   `PASS / CONCEPTUALLY COMPLETE`
 - M9 Step 5:
+  `PASS / CONCEPTUALLY COMPLETE`
+- M9 Step 6:
   `NOT STARTED`
 - approximate M9 milestone progress:
-  `28%`
+  `34%`
 
 The percentage is an approximate milestone-progress indicator, not a
 mathematically exact project-completion measure.

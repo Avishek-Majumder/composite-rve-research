@@ -6,7 +6,7 @@
 **Current completed major milestone:** M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
 **Current active major milestone:** M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset
 **M8 implementation status:** 100% COMPLETE
-**M9 implementation status:** IN PROGRESS — Steps 1-4 complete; Step 5 next
+**M9 implementation status:** IN PROGRESS — Steps 1-5 complete; Step 6 next
 **M9 design authority:** `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`
 **Authoritative post-M5 roadmap:** `docs/Secondary_Planning.docx`
 
@@ -98,7 +98,7 @@ M9 Steps 1-3B are closed at their current scope:
 - Step 3A: final model-output architecture conceptually locked;
 - Step 3B: final model-input architecture conceptually locked.
 
-The six core numerical input domains are now locked under M9 Step 4. M9 Step 5 — Material and Normalization Lock — is next.
+The six core numerical input domains are locked under M9 Step 4. M9 Step 5 has now locked the material-scale, normalization, and reference-anchor policy. M9 Step 6 — Geometry, Defect, and Feasibility Lock — is next.
 
 No stochastic M9 pilot, M10 production database generation, or
 machine-learning training is authorized at this checkpoint.
@@ -894,7 +894,8 @@ Current scientific state:
 - **M9 Step 4A:** material-property range lock PASS / CLOSED.
 - **M9 Step 4B:** particle/void-content range lock PASS / CLOSED.
 - **M9 Step 4 overall:** PASS / conceptually complete.
-- **M9 Step 5:** NOT STARTED.
+- **M9 Step 5:** material and normalization lock PASS / conceptually complete.
+- **M9 Step 6:** NOT STARTED.
 - **Final numerical M9 parameter ranges:** LOCKED.
 - **Stochastic M9 pilot:** NOT AUTHORIZED.
 - **M10 production FEM database:** NOT AUTHORIZED.
@@ -906,7 +907,33 @@ Permanent M9 design authority:
 
 The immediate next scientific gate is:
 
-> **M9 Step 5 — Material and Normalization Lock**
+> **M9 Step 6 — Geometry, Defect, and Feasibility Lock**
+
+M9 Step 5 has locked the following material/normalization policy:
+
+- internal reference modulus:
+  `E_matrix = 1000`;
+- particle modulus:
+  `E_particle = Ep_over_Em * E_matrix`;
+- scientific stiffness input:
+  `Ep_over_Em`;
+- canonical global stiffness normalization:
+  `Cbar / E_matrix`;
+- derived global responses:
+  `Ex_over_Em`, `Ey_over_Em`, `Gxy_over_Em`, `nu_xy`, `nu_yx`;
+- primary local response:
+  `K_vm_tail10_X = sigma_vm_tail10_X / abs_Sigma11_X`;
+- geometry length scale:
+  `L = 1`;
+- permanent computational reference anchor:
+  `(E_matrix, E_particle, nu_matrix, nu_particle) = (1000, 10000, 0.30, 0.25)`.
+
+The reference anchor is computational only and is not assigned to a named
+real-material system.
+
+No additional named real-material production anchor is introduced.
+
+There is no experimental validation.
 
 The locked baseline physical input vector remains:
 
