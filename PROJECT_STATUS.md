@@ -6,7 +6,7 @@
 **Current completed major milestone:** M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
 **Current active major milestone:** M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset
 **M8 implementation status:** 100% COMPLETE
-**M9 implementation status:** IN PROGRESS — Steps 1-5 complete; Step 6 next
+**M9 implementation status:** IN PROGRESS — Steps 1-6 complete; Step 7 next
 **M9 design authority:** `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`
 **Authoritative post-M5 roadmap:** `docs/Secondary_Planning.docx`
 
@@ -39,7 +39,7 @@ The original Project 01 planning remains the historical initial scope. The post-
 | M6        | 100% COMPLETE | Multiple/Random-Particle Microstructure Foundation                                     |
 | M7        | 100% COMPLETE | Circular Void Defects and Defect-Sensitive Response Definition                         |
 | M8        | 100% COMPLETE | RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification |
-| M9        | IN PROGRESS   | Final Parameter-Space Lock and Stochastic Pilot Dataset — Steps 1-3B complete          |
+| M9        | IN PROGRESS   | Final Parameter-Space Lock and Stochastic Pilot Dataset — Steps 1-6 complete           |
 | M10       | NOT STARTED   | Main Quality-Controlled FEM Simulation Database                                        |
 | M11       | NOT STARTED   | Baseline Machine-Learning Models and Grouped Validation                                |
 | M12       | NOT STARTED   | Active Learning versus Random Sampling                                                 |
@@ -98,7 +98,7 @@ M9 Steps 1-3B are closed at their current scope:
 - Step 3A: final model-output architecture conceptually locked;
 - Step 3B: final model-input architecture conceptually locked.
 
-The six core numerical input domains are locked under M9 Step 4. M9 Step 5 has now locked the material-scale, normalization, and reference-anchor policy. M9 Step 6 — Geometry, Defect, and Feasibility Lock — is next.
+The six core numerical input domains are locked under M9 Step 4. M9 Step 5 locked the material-scale, normalization, and reference-anchor policy. M9 Step 6 has now locked the principal periodic geometry, pair-clearance, finite-placement, and stage-aware failure/QC policy. M9 Step 7 — Stochastic Reproducibility Policy — is next.
 
 No stochastic M9 pilot, M10 production database generation, or
 machine-learning training is authorized at this checkpoint.
@@ -895,7 +895,8 @@ Current scientific state:
 - **M9 Step 4B:** particle/void-content range lock PASS / CLOSED.
 - **M9 Step 4 overall:** PASS / conceptually complete.
 - **M9 Step 5:** material and normalization lock PASS / conceptually complete.
-- **M9 Step 6:** NOT STARTED.
+- **M9 Step 6:** geometry, defect, feasibility, and failure-taxonomy lock PASS / conceptually complete.
+- **M9 Step 7:** NOT STARTED.
 - **Final numerical M9 parameter ranges:** LOCKED.
 - **Stochastic M9 pilot:** NOT AUTHORIZED.
 - **M10 production FEM database:** NOT AUTHORIZED.
@@ -907,7 +908,7 @@ Permanent M9 design authority:
 
 The immediate next scientific gate is:
 
-> **M9 Step 6 — Geometry, Defect, and Feasibility Lock**
+> **M9 Step 7 — Stochastic Reproducibility Policy**
 
 M9 Step 5 has locked the following material/normalization policy:
 
@@ -975,30 +976,61 @@ No isotropy or orthotropy projection is authorized.
 
 For pristine cases, `K_vm_tail10_X` is undefined rather than zero.
 
-Step 4 does not authorize a stochastic pilot.
+M9 Step 6 does not authorize a stochastic pilot.
 
-Exact geometry-clearance/rejection rules remain M9 Step 6.
+The principal Step-6 geometry/feasibility policy is now locked as follows:
 
-Exact sampling density and pilot design remain M9 Step 8.
+- two-dimensional periodic square cell with `L = 1`;
+- particles and true voids may cross computational-cell boundaries;
+- no artificial external-boundary clearance;
+- toroidal/minimum-image pair-distance calculations;
+- `g_pp = 0.020`;
+- `g_pv = 0.020`;
+- `g_vv = 0.020`;
+- `max_attempts_per_particle = 20000`;
+- `max_attempts_per_void = 20000`;
+- no per-realization gap relaxation;
+- no selective attempt-budget relaxation;
+- no seed substitution;
+- no response-based realization selection.
 
-Targeted transfer validation remains mandatory in M9 Step 9, including
-difficult material, particle-fraction, void-fraction, void-count, and combined
-edge/corner conditions.
+The common pair gap is a project-specific computational geometry decision.
+
+It is not claimed to be a universal materials-science spacing constant.
+
+The Step-6 geometry-only feasibility diagnostics do not establish FEM,
+production-mesh, or local-response transfer over the complete final domain.
+
+The Step-6 top-level case/QC taxonomy is:
+
+1. `invalid_design_input`;
+2. `invalid_geometry`;
+3. `mesh_failure`;
+4. `fem_failure`;
+5. `response_failure`;
+6. `success`.
+
+`not_applicable` is a subresponse applicability state rather than a top-level
+realization failure.
+
+Thus a pristine successful realization can retain valid global outputs while
+`K_vm_tail10_X` is not applicable rather than numerically zero.
+
+Native stage-specific diagnostics and provenance must be preserved beneath the
+top-level classification.
 
 M9 must still complete:
 
-1. material/normalization lock;
-2. geometry/defect/feasibility lock;
-3. stochastic reproducibility policy;
-4. pilot-design and QC lock;
-5. targeted transfer-validation;
-6. formal pilot authorization.
+1. stochastic reproducibility policy;
+2. pilot-design and QC lock;
+3. targeted transfer-validation;
+4. formal pilot authorization.
 
-The stochastic M9 pilot may begin only after all preceding M9 gates pass.
+The stochastic M9 pilot remains NOT AUTHORIZED.
 
-Machine-learning training remains unauthorized throughout M9 and remains
-unauthorized until the M10 quality-controlled FEM database and its
-QC/provenance gates are formally closed.
+M10 production FEM generation remains NOT AUTHORIZED.
+
+Machine-learning training remains NOT AUTHORIZED.
 
 The public Git repository must not be represented as a complete historical
 backup of Git-ignored raw scientific evidence.

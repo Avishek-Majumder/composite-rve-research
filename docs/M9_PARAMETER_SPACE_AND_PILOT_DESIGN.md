@@ -12,9 +12,9 @@
 
 **Current M9 state:** IN PROGRESS
 
-**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, 4, and 5
+**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, 4, 5, and 6
 
-**Next scientific gate:** Step 6 — Geometry, Defect, and Feasibility Lock
+**Next scientific gate:** Step 7 — Stochastic Reproducibility Policy
 
 **Stochastic M9 pilot:** NOT AUTHORIZED
 
@@ -1386,24 +1386,281 @@ Step 5 does not authorize:
 Exact geometry clearance, feasibility, and rejection rules remain assigned to
 M9 Step 6.
 
-### 19.12 Remaining exact M9 sequence
+### 19.12 Step-5 closure transition
 
-M9 Steps 1-5 are now complete at their currently authorized scope.
+M9 Step 5 remains closed at its authenticated scientific-design scope.
 
-The remaining scientific sequence is:
+Its material-scale, normalization, and computational-reference authorities
+remain unchanged and are inherited by Step 6.
 
-### Step 6 — Geometry, defect, and feasibility lock
+---
 
-Define final:
+## 20. M9 Step 6 — Geometry, defect, and feasibility lock
 
-- admissible geometry;
-- particle/void spacing;
-- periodic rules;
-- invalid-state definitions;
-- rejection/failure states;
-- feasibility criteria.
+### Status
 
-### Step 7 — Stochastic reproducibility policy
+**PASS / CONCEPTUALLY LOCKED**
+
+M9 Step 6 locks the principal production geometry, periodic topology,
+pair-clearance policy, finite placement controls, deterministic invalid-case
+behavior, and stage-aware case/failure taxonomy.
+
+No stochastic M9 pilot is authorized by this lock.
+
+### 20.1 Principal periodic topology
+
+The principal M9/M10 geometry remains a two-dimensional periodic square cell:
+
+`Omega = [0, L) x [0, L)`
+
+with:
+
+`L = 1`.
+
+Opposite cell edges are identified periodically.
+
+Particles and true voids may cross computational-cell boundaries.
+
+Wrapped or translated representations belong to the same physical object and
+must not be counted as additional particles or voids.
+
+No artificial particle-to-external-boundary or void-to-external-boundary
+minimum clearance is imposed in the principal periodized domain.
+
+### 20.2 Toroidal pair-distance policy
+
+Particle-particle, particle-void, and void-void checks use minimum-image
+toroidal distance.
+
+Physical pair surface gap is:
+
+`g_ij = d_tor(i,j) - r_i - r_j`.
+
+This rule applies both inside the primary cell and across opposite periodic
+boundaries.
+
+### 20.3 Final production pair-clearance lock
+
+The common production minimum surface-gap policy is:
+
+`g_pp = 0.020`
+
+`g_pv = 0.020`
+
+`g_vv = 0.020`
+
+or equivalently:
+
+`g_pp = g_pv = g_vv = 0.020`.
+
+The value is a project-specific computational geometry choice.
+
+It is not claimed to be a universal materials-science spacing constant.
+
+At production:
+
+`h = 0.02048`
+
+so the nominal ratio is:
+
+`0.020 / 0.02048 = 0.9765625`.
+
+This is only a nominal geometry/mesh-scale comparison and is not a claim that
+every ligament contains a fixed number of finite elements.
+
+### 20.4 Step-6 feasibility evidence
+
+The analytical screen compared common-gap candidates:
+
+- `0.015`;
+- `0.020`;
+- `0.025`.
+
+A subsequent deterministic geometry-only screen used:
+
+`particle_area_fraction_requested = 0.20`
+
+with 32 diagnostic particle realizations per gap and defective corners:
+
+- `(0.03, 1)`;
+- `(0.03, 2)`;
+- `(0.03, 4)`;
+- `(0.0075, 4)`,
+
+where each pair denotes:
+
+`(void_area_fraction_requested, void_count)`.
+
+All three candidate gaps achieved `32/32` particle-placement success and
+`32/32` success for each tested defective corner.
+
+For the selected `0.020` gap:
+
+- particle attempt median/max:
+  `34 / 48`;
+- high-void `N_v = 1` void attempt median/max:
+  `15.5 / 134`;
+- high-void `N_v = 2`:
+  `8.5 / 38`;
+- high-void `N_v = 4`:
+  `16 / 41`;
+- smallest-void `N_v = 4`:
+  `8 / 15`.
+
+These results are geometry-feasibility diagnostics only.
+
+They do not establish:
+
+- stochastic placement-success probability;
+- FEM accuracy;
+- production-mesh transfer;
+- local-response transfer;
+- pilot authorization.
+
+### 20.5 Finite placement-attempt controls
+
+The production placement controls are:
+
+`max_attempts_per_particle = 20000`
+
+and:
+
+`max_attempts_per_void = 20000`.
+
+These are algorithmic feasibility controls.
+
+They are not physical ML predictors and must not be changed selectively to
+rescue an inconvenient realization.
+
+### 20.6 Deterministic geometry-failure policy
+
+If an admissible requested realization cannot be generated under the locked
+topology, gaps, seed, and attempt limits, it is recorded as invalid geometry.
+
+The workflow must not:
+
+- relax the gap;
+- increase the attempt budget only for the failing realization;
+- substitute a different seed;
+- rerun repeatedly until a convenient geometry appears;
+- select or reject a realization based on its mechanical response.
+
+A design point inside the locked physical M9 domain must not be silently
+removed merely because an auxiliary crowding heuristic predicts difficulty.
+
+Actual deterministic geometry-generation outcome governs geometry validity
+under the current policy.
+
+### 20.7 Top-level case/failure taxonomy
+
+The top-level realization classifications are:
+
+1. `invalid_design_input`
+2. `invalid_geometry`
+3. `mesh_failure`
+4. `fem_failure`
+5. `response_failure`
+6. `success`
+
+`invalid_design_input` means the requested physical state violates the locked
+M9 design-domain or deterministic input contract.
+
+`invalid_geometry` means the requested physical state is admissible but
+geometry construction or geometry validation fails under the locked Step-6
+rules.
+
+`mesh_failure` means valid geometry exists but CAD, mesh generation,
+conversion, or required mesh verification fails.
+
+`fem_failure` means a valid mesh reaches the FEM stage but solve execution,
+PETSc convergence, or required solve-level validation fails.
+
+`response_failure` means the FEM solve is otherwise valid but a required
+response extraction or response-validity check fails, is absent, or yields
+invalid/non-finite required output.
+
+`success` means all required active pipeline stages and outputs pass.
+
+### 20.8 `not_applicable` semantics
+
+`not_applicable` is not a top-level realization failure.
+
+It is a field/subresponse applicability state.
+
+A pristine successful realization may have valid global homogenized outputs
+while:
+
+`local_response_status = not_applicable`
+
+for:
+
+`K_vm_tail10_X`.
+
+The pristine local response must not be fabricated as zero.
+
+### 20.9 Native stage diagnostics
+
+The top-level classification must not erase native evidence.
+
+Retain where applicable:
+
+- failure stage/type/reason;
+- design-point and realization identity;
+- particle and void RNG seeds;
+- geometry identity/hash;
+- failing object identity;
+- placement attempts;
+- mesh/CAD diagnostics;
+- subprocess return code;
+- exception information;
+- PETSc convergence reason;
+- PETSc iteration count;
+- response/postprocessing diagnostics.
+
+Exact final pilot-record field names remain assigned to Step 8.
+
+### 20.10 M8 implementation boundary
+
+The authenticated M8 periodized geometry generators remain validated
+implementation foundations.
+
+They must not be silently relabeled as final M9 production sources while their
+existing metadata still declares M8 validation scope.
+
+Any future production adaptation requires explicit M9/M10 schema, version, and
+provenance authority.
+
+This Step-6 lock does not modify protected M6/M7/M8 source code.
+
+### 20.11 Transfer-validation boundary
+
+The geometry-only Step-6 evidence does not establish transfer of the M8
+production-mesh or local-response verification across the complete final M9
+domain.
+
+Step 9 remains mandatory for deliberately difficult/extreme final-domain
+conditions.
+
+### 20.12 Step-6 non-authorizations
+
+Step 6 does not authorize:
+
+- stochastic M9 pilot execution;
+- M10 production FEM generation;
+- machine-learning training;
+- silent source-scope relabeling;
+- gap relaxation;
+- seed substitution;
+- response-based realization selection.
+
+### 20.13 Remaining exact M9 sequence
+
+M9 Steps 1-6 are complete at their currently authorized scientific-design
+scope.
+
+The next gate is:
+
+#### Step 7 — Stochastic reproducibility policy
 
 Lock:
 
@@ -1412,36 +1669,32 @@ Lock:
 - seed derivation/allocation;
 - repeated-realization policy;
 - non-overwrite behavior;
-- provenance requirements.
+- realization provenance.
 
-### Step 8 — Pilot design and QC lock
+#### Step 8 — Pilot design and QC lock
 
-Define:
+Lock:
 
 - sampling strategy;
 - pilot size;
-- success/failure classifications;
+- exact pilot success/failure schema;
 - raw-output schema;
 - metadata;
-- QC gates;
+- QC thresholds/gates;
 - stop conditions.
 
-### Step 9 — Targeted transfer-validation
+#### Step 9 — Targeted transfer-validation
 
-Deliberately test difficult/extreme final-domain conditions.
+Deliberately test difficult/extreme final-domain conditions before pilot
+authorization.
 
-M8 production-mesh/local-response verification must not simply be assumed to
-transfer over the complete future M9 domain.
-
-### Step 10 — Pilot authorization
+#### Step 10 — Pilot authorization
 
 Only after Steps 4-9 pass may the stochastic M9 pilot begin.
 
-Run the pilot under the established authenticated one-step-at-a-time protocol.
-
 ---
 
-## 20. Machine-learning authorization boundary
+## 21. Machine-learning authorization boundary
 
 M9 is not an ML-training milestone.
 
@@ -1467,7 +1720,7 @@ QC/provenance gates are formally closed.
 
 ---
 
-## 21. Current checkpoint
+## 22. Current checkpoint
 
 At creation of this document:
 
@@ -1492,16 +1745,18 @@ At creation of this document:
 - M9 Step 5:
   `PASS / CONCEPTUALLY COMPLETE`
 - M9 Step 6:
+  `PASS / CONCEPTUALLY COMPLETE`
+- M9 Step 7:
   `NOT STARTED`
 - approximate M9 milestone progress:
-  `34%`
+  `45%`
 
 The percentage is an approximate milestone-progress indicator, not a
 mathematically exact project-completion measure.
 
 ---
 
-## 22. Documentation and provenance policy
+## 23. Documentation and provenance policy
 
 This M9 record is intended to be Git-tracked.
 
