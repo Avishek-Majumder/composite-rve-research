@@ -12,9 +12,9 @@
 
 **Current M9 state:** IN PROGRESS
 
-**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, and 3B
+**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, and 4
 
-**Next scientific gate:** Step 4 — Final Parameter-Range Lock
+**Next scientific gate:** Step 5 — Material and Normalization Lock
 
 **Stochastic M9 pilot:** NOT AUTHORIZED
 
@@ -444,8 +444,9 @@ represents particle-to-matrix stiffness contrast.
 The arbitrary absolute reference value of `E_matrix` is not used as an
 ordinary ML predictor in the normalized framework.
 
-Permitted material anchors and exact material-property ranges remain subject
-to M9 Steps 4 and 5.
+The numerical material-property domains are now locked under M9 Step 4.
+Permitted material anchors and normalization details remain subject to
+M9 Step 5.
 
 ### 7.3 Requested particle area fraction
 
@@ -555,8 +556,8 @@ Therefore:
 is a derived geometry quantity rather than an independently sampled core
 input when requested void fraction and void count already determine it.
 
-The final admissible void-count set and final void-fraction interval remain
-open for M9 Step 4.
+The admissible pristine/defective void-fraction and void-count domain is
+now locked under M9 Step 4 and recorded in Section 18.
 
 ---
 
@@ -780,42 +781,318 @@ Examples include:
 
 ---
 
-## 18. Current non-authorizations
+## 18. M9 Step 4 — Final parameter-range lock
 
-The following are not yet scientifically locked or authorized:
+### Status
 
-- exact `Ep_over_Em` interval;
-- exact `nu_matrix` interval;
-- exact `nu_particle` interval;
-- exact particle-area-fraction interval;
-- exact void-area-fraction interval;
-- exact allowed void-count set;
-- final geometry-spacing rules;
-- final geometry rejection rules;
+**PASS / CONCEPTUALLY LOCKED**
+
+M9 Step 4 is complete at the scientific-design level.
+
+All six core physical input domains are now numerically defined.
+
+The ranges below are project-specific, literature-informed computational-domain
+choices for the restricted normalized two-dimensional isotropic,
+small-strain, linear-elastic, plane-stress particle/true-void framework.
+
+They are not universal material limits.
+
+### 18.1 Step 4A — Material-property ranges
+
+The stiffness-contrast input is locked to:
+
+`Ep_over_Em in [2, 30]`
+
+The matrix Poisson-ratio input is locked to:
+
+`nu_matrix in [0.25, 0.40]`
+
+The particle Poisson-ratio input is locked to:
+
+`nu_particle in [0.15, 0.30]`
+
+The protected reference material state remains inside the locked domain:
+
+- `Ep_over_Em = 10`
+- `nu_matrix = 0.30`
+- `nu_particle = 0.25`
+
+The `Ep_over_Em` interval intentionally covers modest-to-strong stiff-particle
+contrast while avoiding an unnecessary expansion into very-high-contrast
+regimes before targeted transfer validation.
+
+The Poisson-ratio intervals are conservative project-specific model-domain
+choices. They are not claims that real constituent materials cannot exist
+outside these ranges.
+
+M9 transfer validation must deliberately include difficult material-edge and
+corner conditions rather than assuming the M8 reference-material numerical
+verification transfers automatically.
+
+### 18.2 Step 4B — Particle area-fraction range
+
+The requested particle content is locked to:
+
+`particle_area_fraction_requested in [0.08, 0.20]`
+
+This variable is a two-dimensional particle **area fraction**.
+
+It must not be silently described as a measured three-dimensional particle
+volume fraction.
+
+For the fixed principal R1 configuration:
+
+- `L = 1`
+- `N_p = 16`
+
+and monodisperse particles,
+
+`r_p = sqrt(phi_p_requested / (16*pi))`.
+
+The locked area-fraction bounds therefore correspond approximately to:
+
+- at `phi_p = 0.08`:
+  `r_p = 0.0398942`
+- at `phi_p = 0.20`:
+  `r_p = 0.0630783`
+
+At production:
+
+`h = 0.02048`
+
+the corresponding particle diameters are approximately:
+
+- `3.90*h` at the lower particle-fraction boundary;
+- `6.16*h` at the upper particle-fraction boundary.
+
+The protected M8 reference particle state:
+
+- `r_p = 0.05`
+- `phi_p approximately 0.1256637`
+
+lies inside the locked M9 interval.
+
+The 8% lower bound is intentionally more conservative than lower particle
+fractions used in some published composite studies because this project fixes
+16 physical particles in R1 and must preserve a numerically credible
+particle-size regime at the accepted production mesh.
+
+This does not by itself prove that M8 representativity or mesh verification
+transfers to either 8% or 20%.
+
+Those boundaries remain mandatory targeted transfer-validation conditions.
+
+### 18.3 Step 4B — Void fraction and void-count domain
+
+The void domain is piecewise rather than a naive rectangular Cartesian
+product.
+
+#### Pristine state
+
+The only admissible pristine state is:
+
+`void_area_fraction_requested = 0`
+
+with:
+
+`void_count = 0`
+
+#### Defective states
+
+For defective cases:
+
+`void_area_fraction_requested in [0.0075, 0.03]`
+
+and:
+
+`void_count in {1, 2, 4}`
+
+Therefore:
+
+- positive void fraction with `void_count = 0` is invalid;
+- `void_count > 0` with zero requested void fraction is invalid.
+
+For equal-radius circular true holes,
+
+`r_v = sqrt(phi_v_requested / (void_count*pi))`.
+
+Representative boundary values are approximately:
+
+- `phi_v = 0.0075`, `N_v = 1`:
+  `r_v = 0.0488603`
+- `phi_v = 0.0075`, `N_v = 2`:
+  `r_v = 0.0345494`
+- `phi_v = 0.0075`, `N_v = 4`:
+  `r_v = 0.0244301`
+- `phi_v = 0.03`, `N_v = 1`:
+  `r_v = 0.0977205`
+- `phi_v = 0.03`, `N_v = 2`:
+  `r_v = 0.0690988`
+- `phi_v = 0.03`, `N_v = 4`:
+  `r_v = 0.0488603`
+
+At the smallest locked void:
+
+`phi_v = 0.0075`, `N_v = 4`
+
+the hole diameter is approximately:
+
+`2.39*h`
+
+at production `h = 0.02048`.
+
+This is intentionally close to the authenticated M8 baseline true-hole
+diameter:
+
+`2*r_v = 0.05`
+
+which is approximately:
+
+`2.44*h`.
+
+The lower defective void-fraction bound also contains the authenticated M8
+void states:
+
+- baseline:
+  `4*pi*(0.025)^2 approximately 0.00785398`
+- high severity:
+  `4*pi*(0.0275)^2 approximately 0.00950332`
+
+The upper 3% defective bound is intentionally conservative relative to
+published void/porosity parameter studies and avoids automatically expanding
+the principal M9 domain to more severe porosity before transfer validation.
+
+`void_count` remains a separate physical design input because total void
+fraction alone does not uniquely define defect multiplicity or characteristic
+individual void size.
+
+### 18.4 Final six-input numerical domain
+
+The locked principal M9 physical domain is:
+
+- `Ep_over_Em in [2, 30]`
+- `nu_matrix in [0.25, 0.40]`
+- `nu_particle in [0.15, 0.30]`
+- `particle_area_fraction_requested in [0.08, 0.20]`
+- pristine void state:
+  `(void_area_fraction_requested, void_count) = (0, 0)`
+- defective void states:
+  `void_area_fraction_requested in [0.0075, 0.03]`
+  with
+  `void_count in {1, 2, 4}`
+
+The continuous-domain sampling density is not defined by this range lock.
+
+### 18.5 Literature traceability for the Step-4 ranges
+
+The Step-4 bounds are project-specific computational-domain choices.
+
+The literature below provides context for plausibility and nearby published
+parameter regimes. It does **not** directly authorize the exact M9 bounds,
+because the cited studies differ from this project in dimensionality,
+microstructure type, constitutive setting, or research objective.
+
+1. Y. Liu, F. P. van der Meer, and L. J. Sluys,
+   “A dispersive homogenization model for composites and its RVE existence,”
+   *Computational Mechanics*, 65, 79–98, 2020.
+
+   DOI:
+
+   `10.1007/s00466-019-01753-9`
+
+   Relevant contextual observations include material-contrast factors:
+
+   `c in {2, 4, 9, 16, 30}`
+
+   and a reported constituent example with approximately:
+
+   - `E_inclusion = 74 GPa`
+   - `E_matrix = 3.76 GPa`
+   - `nu_inclusion = 0.20`
+   - `nu_matrix = 0.30`
+
+   This source supports the plausibility of the selected contrast and
+   Poisson-ratio neighborhood only. Its dynamic homogenization, fiber,
+   and plane-strain context is not treated as equivalent to the present
+   2D plane-stress particle-RVE framework.
+
+2. S. Zhu, S. Wu, Y. Fu, and S. Guo,
+   “Prediction of particle-reinforced composite material properties based on
+   an improved Halpin–Tsai model,”
+   *AIP Advances*, 14, 045339, 2024.
+
+   DOI:
+
+   `10.1063/5.0206774`
+
+   The study considers SiC particle volume fractions:
+
+   `5%, 10%, 15%, 20%`
+
+   and porosity values spanning:
+
+   `0% to 5%`.
+
+   This source provides particle-content and porosity context only.
+   Its three-dimensional volume fractions must not be silently equated with
+   this project's two-dimensional requested particle/void area fractions.
+
+3. M. Karimian and S. A. Hosseini Kordkheili,
+   “Application of deep residual networks to predict the effective properties
+   of fiber-reinforced composites with voids,”
+   *Advances in Mechanical Engineering*, 17(1), 2025.
+
+   DOI:
+
+   `10.1177/16878132251315871`
+
+   The study uses random RVEs with periodic boundary conditions and FEM,
+   with void volume fractions in the range:
+
+   `0.00 to 0.03`.
+
+   This provides direct literature context for choosing a conservative
+   defective upper bound of 3%, but its fiber-composite volume-fraction
+   domain is not treated as identical to this project's 2D particle-RVE
+   area-fraction domain.
+
+Accordingly, the final M9 Step-4 limits remain literature-informed but
+project-specific. No cited literature range is copied mechanically into the
+production domain.
+
+### 18.6 Still open after Step 4
+
+Step 4 does not lock:
+
+- particle-particle clearance;
+- particle-void clearance;
+- void-void clearance;
+- periodic/boundary-clearance rules;
+- geometry rejection/failure rules;
 - deterministic case-ID specification;
-- final random-seed allocation policy;
-- exact repeated-realization count;
-- pilot sampling strategy;
+- seed derivation/allocation;
+- repeated-realization count;
+- pilot sampling density/design;
 - pilot sample size;
 - pilot raw-output schema;
 - final pilot QC gates;
-- transfer-validation case set;
-- stochastic pilot execution;
-- M10 production FEM generation;
-- ML training.
+- final transfer-validation case set.
 
-Previously discussed planning ranges are not automatically authorized.
+Those responsibilities remain assigned to later M9 gates.
+
+The stochastic M9 pilot remains unauthorized.
+
+M10 production FEM generation remains unauthorized.
+
+Machine-learning training remains unauthorized.
 
 ---
 
 ## 19. Remaining exact M9 sequence
 
-M9 must continue in this order.
+M9 Step 4 is now complete.
 
-### Step 4 — Final parameter-range lock
-
-Scientifically justify and freeze numerical ranges for the core design
-variables.
+The remaining scientific sequence is:
 
 ### Step 5 — Material and normalization lock
 
@@ -913,10 +1190,16 @@ At creation of this document:
   `PASS / CONCEPTUALLY LOCKED`
 - M9 Step 3B:
   `PASS / CONCEPTUALLY LOCKED`
-- M9 Step 4:
+- M9 Step 4A:
+  `PASS / LOCKED`
+- M9 Step 4B:
+  `PASS / LOCKED`
+- M9 Step 4 overall:
+  `PASS / CONCEPTUALLY COMPLETE`
+- M9 Step 5:
   `NOT STARTED`
 - approximate M9 milestone progress:
-  `18%`
+  `28%`
 
 The percentage is an approximate milestone-progress indicator, not a
 mathematically exact project-completion measure.

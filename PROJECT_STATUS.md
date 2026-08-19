@@ -6,7 +6,7 @@
 **Current completed major milestone:** M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
 **Current active major milestone:** M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset
 **M8 implementation status:** 100% COMPLETE
-**M9 implementation status:** IN PROGRESS — Steps 1-3B complete; Step 4 next
+**M9 implementation status:** IN PROGRESS — Steps 1-4 complete; Step 5 next
 **M9 design authority:** `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`
 **Authoritative post-M5 roadmap:** `docs/Secondary_Planning.docx`
 
@@ -98,7 +98,7 @@ M9 Steps 1-3B are closed at their current scope:
 - Step 3A: final model-output architecture conceptually locked;
 - Step 3B: final model-input architecture conceptually locked.
 
-Exact numerical parameter ranges remain unlocked and belong to M9 Step 4.
+The six core numerical input domains are now locked under M9 Step 4. M9 Step 5 — Material and Normalization Lock — is next.
 
 No stochastic M9 pilot, M10 production database generation, or
 machine-learning training is authorized at this checkpoint.
@@ -891,8 +891,11 @@ Current scientific state:
 - **M9 Step 2:** current literature/novelty refresh PASS / CLOSED with refined novelty boundary.
 - **M9 Step 3A:** final model-output architecture PASS / conceptually locked.
 - **M9 Step 3B:** final model-input architecture PASS / conceptually locked.
-- **M9 Step 4:** NOT STARTED.
-- **Final numerical M9 parameter ranges:** NOT YET LOCKED.
+- **M9 Step 4A:** material-property range lock PASS / CLOSED.
+- **M9 Step 4B:** particle/void-content range lock PASS / CLOSED.
+- **M9 Step 4 overall:** PASS / conceptually complete.
+- **M9 Step 5:** NOT STARTED.
+- **Final numerical M9 parameter ranges:** LOCKED.
 - **Stochastic M9 pilot:** NOT AUTHORIZED.
 - **M10 production FEM database:** NOT AUTHORIZED.
 - **Machine-learning training:** NOT AUTHORIZED.
@@ -903,11 +906,31 @@ Permanent M9 design authority:
 
 The immediate next scientific gate is:
 
-> **M9 Step 4 — Final Parameter-Range Lock**
+> **M9 Step 5 — Material and Normalization Lock**
 
-The currently locked baseline physical input vector is:
+The locked baseline physical input vector remains:
 
 `X = [Ep_over_Em, nu_matrix, nu_particle, particle_area_fraction_requested, void_area_fraction_requested, void_count]`
+
+The Step-4 numerical domain is:
+
+- `Ep_over_Em in [2, 30]`
+- `nu_matrix in [0.25, 0.40]`
+- `nu_particle in [0.15, 0.30]`
+- `particle_area_fraction_requested in [0.08, 0.20]`
+- pristine:
+  `(void_area_fraction_requested, void_count) = (0, 0)`
+- defective:
+  `void_area_fraction_requested in [0.0075, 0.03]`
+  with
+  `void_count in {1, 2, 4}`
+
+The void domain is therefore piecewise rather than a naive rectangular
+Cartesian product.
+
+Positive void fraction with zero void count is invalid.
+
+Positive void count with zero void fraction is invalid.
 
 The currently locked response architecture retains:
 
@@ -925,20 +948,23 @@ No isotropy or orthotropy projection is authorized.
 
 For pristine cases, `K_vm_tail10_X` is undefined rather than zero.
 
-Before parameter ranges are frozen, each numerical bound must be scientifically
-justified for the restricted normalized 2D isotropic, small-strain,
-linear-elastic, plane-stress particle/true-void model class.
+Step 4 does not authorize a stochastic pilot.
 
-Previously discussed planning ranges are not automatically authorized.
+Exact geometry-clearance/rejection rules remain M9 Step 6.
 
-After Step 4, M9 must still complete:
+Exact sampling density and pilot design remain M9 Step 8.
+
+Targeted transfer validation remains mandatory in M9 Step 9, including
+difficult material, particle-fraction, void-fraction, void-count, and combined
+edge/corner conditions.
+
+M9 must still complete:
 
 1. material/normalization lock;
 2. geometry/defect/feasibility lock;
 3. stochastic reproducibility policy;
 4. pilot-design and QC lock;
-5. targeted transfer-validation across deliberately difficult/extreme
-   production conditions;
+5. targeted transfer-validation;
 6. formal pilot authorization.
 
 The stochastic M9 pilot may begin only after all preceding M9 gates pass.
