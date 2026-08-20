@@ -12,9 +12,9 @@
 
 **Current M9 state:** IN PROGRESS
 
-**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, 4, 5, and 6
+**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, 4, 5, 6, and 7
 
-**Next scientific gate:** Step 7 — Stochastic Reproducibility Policy
+**Next scientific gate:** Step 8 — Pilot Design and QC Lock
 
 **Stochastic M9 pilot:** NOT AUTHORIZED
 
@@ -1653,31 +1653,525 @@ Step 6 does not authorize:
 - seed substitution;
 - response-based realization selection.
 
-### 20.13 Remaining exact M9 sequence
+### 20.13 Step-6 closure transition
 
-M9 Steps 1-6 are complete at their currently authorized scientific-design
+M9 Step 6 remains closed at its authenticated scientific-design scope.
+
+Its periodic-geometry, clearance, feasibility, invalid-case, and failure/QC
+authorities remain unchanged and are inherited by Step 7.
+
+---
+
+## 21. M9 Step 7 — Stochastic reproducibility policy
+
+### Status
+
+**PASS / CONCEPTUALLY LOCKED**
+
+M9 Step 7 locks deterministic physical-design identity, stochastic-realization
+identity, particle/void seed derivation, RNG stream separation, replay
+provenance requirements, non-overwrite behavior, and retry semantics.
+
+This step does not determine the final number of repeated realizations.
+
+That quantity remains owned by M9 Step 8.
+
+Step 7 does not authorize stochastic pilot execution.
+
+### 21.1 Design-identity namespace
+
+The permanent M9 design-identity namespace is:
+
+`composite-rve-m9-design-v1`
+
+A physical design identity is computed only after the six physical inputs pass
+the already locked M9 design-domain validation.
+
+The identity layer uses exactly:
+
+1. `Ep_over_Em`
+2. `nu_matrix`
+3. `nu_particle`
+4. `particle_area_fraction_requested`
+5. `void_area_fraction_requested`
+6. `void_count`
+
+No random seed, realization index, mesh quantity, solver quantity, response,
+or failure state enters the physical design identity.
+
+### 21.2 Canonical design serialization
+
+Canonical key order is fixed as:
+
+`Ep_over_Em`
+
+`nu_matrix`
+
+`nu_particle`
+
+`particle_area_fraction_requested`
+
+`void_area_fraction_requested`
+
+`void_count`.
+
+Continuous values are serialized as canonical finite decimal text.
+
+The canonicalization rules are:
+
+- equivalent decimal spellings collapse to the same text;
+- scientific notation is expanded to fixed decimal notation;
+- unnecessary trailing fractional zeros are removed;
+- a terminal decimal point is removed;
+- all signed-zero spellings collapse to `0`;
+- no hidden rounding or quantization is performed by the identity layer;
+- non-finite values are invalid;
+- `void_count` is serialized as exact non-negative base-10 integer text.
+
+Mapping insertion order must not affect identity.
+
+The exact canonical material is UTF-8 text with no terminal newline.
+
+The permanent material template is:
+
+`composite-rve-m9-design-v1|Ep_over_Em=<canonical>|nu_matrix=<canonical>|nu_particle=<canonical>|particle_area_fraction_requested=<canonical>|void_area_fraction_requested=<canonical>|void_count=<canonical>`
+
+Any explicit sampling precision or design-value quantization policy remains
+owned by Step 8 and must occur before identity construction if Step 8 later
+authorizes such a policy.
+
+### 21.3 Full design digest and compact human design ID
+
+Define:
+
+`design_sha256 = SHA256(UTF8(canonical_design_material))`.
+
+The complete 256-bit digest is permanent identity authority and must be stored.
+
+The compact human-readable design ID is:
+
+`M9D-<first 32 hexadecimal characters of design_sha256>`.
+
+The human ID therefore uses the first 128 digest bits for compact identity.
+
+The full 256-bit digest remains authoritative.
+
+If an already registered compact human ID is encountered with a different full
+design digest, that condition is a hard identity-collision error.
+
+The compact human ID must never silently override a full-digest mismatch.
+
+### 21.4 Realization identity
+
+Stochastic realization indices are positive integers beginning at:
+
+`1`.
+
+Their canonical text rendering is decimal, left-zero-padded to a minimum width
+of six characters.
+
+Examples are:
+
+- `1 -> 000001`;
+- `9 -> 000009`;
+- `10 -> 000010`;
+- `999999 -> 999999`;
+- `1000000 -> 1000000`.
+
+The width is therefore a minimum width, not a maximum realization index.
+
+Define:
+
+`realization_id = <design_id>-R<rendered_realization_index>`.
+
+A bare realization integer is not globally sufficient identity.
+
+Every realization is bound to its physical design identity.
+
+Multiple stochastic realizations at one physical design point therefore share
+one `design_id` and use distinct positive realization indices.
+
+The exact number of repeated realizations per design point remains assigned to
+Step 8.
+
+### 21.5 Seed namespace and derivation
+
+The permanent M9 stochastic seed namespace is:
+
+`composite-rve-m9-stochastic-v1`.
+
+The seed derivation uses the full design SHA-256 digest rather than the compact
+human ID.
+
+For the particle stream:
+
+`particle_seed_material = composite-rve-m9-stochastic-v1|design_sha256=<full_design_sha256>|realization=<rendered_realization_index>|stream=particle`
+
+For the void stream:
+
+`void_seed_material = composite-rve-m9-stochastic-v1|design_sha256=<full_design_sha256>|realization=<rendered_realization_index>|stream=void`
+
+For either applicable stream:
+
+`seed_digest = SHA256(UTF8(seed_material))`.
+
+The RNG seed is the unsigned big-endian integer represented by the:
+
+`first 16 bytes of seed_digest`.
+
+This is a fixed 16-byte / 128-bit encoding.
+
+The mathematical integer's ordinary bit length may be smaller than 128 when
+the leading digest bits contain zeros.
+
+That does not change the fixed seed-encoding width.
+
+### 21.6 Particle/void stream domain separation
+
+Particle and void randomness are separate deterministic streams.
+
+The stream labels are exactly:
+
+- `particle`;
+- `void`.
+
+The different stream labels produce different seed material and prevent the
+particle and void streams from being silently coupled through one undifferentiated
+seed.
+
+For a defective realization:
+
+- `particle_seed` is applicable;
+- `void_seed` is applicable.
+
+For a pristine realization:
+
+- `particle_seed` remains applicable;
+- no void-placement RNG stream is invoked;
+- `void_seed_status = not_applicable`.
+
+A fabricated numerical void seed must not be introduced merely to fill a table
+for a pristine realization.
+
+Raw seed integers are provenance and grouping information.
+
+They are not ordinary ML predictors.
+
+### 21.7 RNG construction
+
+The locked M9 stochastic bit generator is:
+
+`PCG64`.
+
+The explicit construction is:
+
+`Generator(PCG64(seed))`.
+
+The implementation must not silently switch to another bit generator or to an
+implicit default RNG construction while retaining the same M9 stochastic
+schema/version label.
+
+A future deliberate RNG change requires a new explicit stochastic
+schema/version boundary.
+
+### 21.8 Exact reference contract anchor
+
+For the reference defective physical design:
+
+- `Ep_over_Em = 10`;
+- `nu_matrix = 0.30`;
+- `nu_particle = 0.25`;
+- `particle_area_fraction_requested = 0.125`;
+- `void_area_fraction_requested = 0.01`;
+- `void_count = 4`;
+
+the canonical material is:
+
+`composite-rve-m9-design-v1|Ep_over_Em=10|nu_matrix=0.3|nu_particle=0.25|particle_area_fraction_requested=0.125|void_area_fraction_requested=0.01|void_count=4`
+
+and the locked reconstruction anchor is:
+
+`design_sha256 = 150158a3e9e759750a2bebf6672ff2c3261ad95fdb713284e2453e71160413af`
+
+`design_id = M9D-150158a3e9e759750a2bebf6672ff2c3`
+
+`realization_id = M9D-150158a3e9e759750a2bebf6672ff2c3-R000001`
+
+`particle_seed = 302080590121509650221841365288740422347`
+
+`void_seed = 195733326785063538836689677512802722269`.
+
+These values are deterministic contract anchors.
+
+They do not authorize this reference design as a production pilot sample by
+themselves.
+
+### 21.9 Replay semantics
+
+A raw seed alone is not complete exact-geometry replay authority.
+
+Exact replay depends on the combination of:
+
+- physical design identity;
+- realization identity;
+- applicable stream seeds;
+- explicit RNG bit generator;
+- generator implementation/version;
+- generator source;
+- RNG call pattern;
+- execution-environment provenance.
+
+A source change can alter the seed-to-geometry mapping even if the numerical
+seed itself remains unchanged.
+
+Therefore exact replay claims must be tied to source and environment
+provenance rather than to seed alone.
+
+### 21.10 Permanent replay-provenance categories
+
+For every production realization, retain the following replay/provenance
+categories:
+
+1. `design_id`
+2. `design_sha256`
+3. `canonical_design_material`
+4. `realization_id`
+5. `realization_index`
+6. `particle_seed`
+7. `void_seed_or_not_applicable`
+8. `rng_bit_generator`
+9. `python_version`
+10. `numpy_version`
+11. `numpy_build_config_sha256`
+12. `execution_environment_manifest_sha256`
+13. `platform_system`
+14. `platform_release`
+15. `platform_machine`
+16. `generator_schema_or_version`
+17. `particle_generator_source_sha256`
+18. `void_generator_source_sha256_or_not_applicable`
+19. `geometry_identity_sha256`
+
+These are required provenance categories.
+
+Step 8 retains ownership of their exact final raw-record field names and
+storage layout.
+
+### 21.11 Authenticated environment/build anchors entering Step 7
+
+The authenticated Step-7 audit environment included:
+
+- Python `3.12.13`;
+- NumPy `2.5.1`;
+- DOLFINx `0.11.0`;
+- platform machine `x86_64`.
+
+The authenticated NumPy build-configuration digest was:
+
+`98ea46e4ce383b714ca105d6cf0a98caeec0a6d2e69ff26ccefd89fa467490a5`.
+
+The authenticated explicit execution-environment manifest digest was:
+
+`26ab62c42f5dbb3eb7fe36e3ed6237a0c78e292de4d094fc71be0d2c6a1a30b2`.
+
+These hashes are audit anchors for the environment used during the Step-7
+replay investigation.
+
+They are not a claim that future execution must silently ignore a deliberate,
+documented environment change.
+
+Any such change must be recorded explicitly in execution provenance and must
+not be hidden behind an unchanged realization identity.
+
+### 21.12 Observed replay evidence
+
+Under the same:
+
+- physical design identity;
+- realization identity;
+- derived seeds;
+- explicit `PCG64`;
+- generator source bytes;
+- NumPy version;
+- RNG call pattern;
+
+the Step-7 read-only replay audit reproduced identical particle and void
+geometry diagnostics for the reference defective realization.
+
+The particle geometry identity reproduced as:
+
+`ed56c671f7cf0b2c3cd7899ac58befaf0bc6c5bd414f19a499da224f76c6c632`.
+
+The read-only replay result supports the locked reproducibility contract.
+
+It is not production stochastic data.
+
+### 21.13 Non-overwrite policy
+
+Successful durable evidence must never be overwritten.
+
+Failed durable evidence must never be overwritten.
+
+Before any skip or retry decision, existing durable evidence must first be
+authenticated against its expected scientific identity and provenance.
+
+If existing evidence has an identity mismatch, the workflow must hard-stop.
+
+If existing evidence is unreadable or cannot be authenticated, the workflow
+must hard-stop rather than overwrite it.
+
+New durable scientific artifacts must use exclusive-create semantics or an
+equivalent mechanism that fails if the destination already exists.
+
+A check-then-overwrite workflow is not an acceptable substitute for durable
+non-overwrite semantics.
+
+### 21.14 Retry semantics
+
+Blind rerun-until-success behavior is forbidden.
+
+Seed substitution after failure is forbidden.
+
+Response-based realization replacement or cherry-picking is forbidden.
+
+An authorized retry is permitted only after a documented causal remediation
+or a verified transient execution failure.
+
+An authorized retry must preserve:
+
+- `design_id`;
+- full `design_sha256`;
+- `realization_id`;
+- `realization_index`;
+- `particle_seed`;
+- `void_seed` when applicable.
+
+A retry is therefore another execution attempt for the same scientific
+realization, not a new stochastic realization.
+
+The new attempt must be append-only and must preserve the prior failed
+evidence.
+
+### 21.15 Attempt identity
+
+Execution-attempt identity is distinct from realization identity.
+
+A realization may therefore have:
+
+- attempt 1: failed;
+- attempt 2: successful after documented remediation;
+
+while both attempts retain the identical scientific `realization_id` and RNG
+seed assignment.
+
+The attempt index itself is execution provenance.
+
+It is not an ordinary ML predictor.
+
+Step 8 retains ownership of exact attempt-record field names, raw directory
+layout, and filename conventions.
+
+### 21.16 Failure-class retry boundary
+
+The normal Step-7 retry semantics are:
+
+- `success`:
+  authenticate and skip; do not rerun;
+- `invalid_design_input`:
+  do not execute the same invalid request;
+- `invalid_geometry`:
+  retain evidence; no blind retry; retry only after documented causal
+  remediation while preserving realization identity;
+- `mesh_failure`:
+  retain evidence; retry only after documented causal remediation or verified
+  transient execution failure;
+- `fem_failure`:
+  retain evidence; retry only after documented causal remediation or verified
+  transient execution failure;
+- `response_failure`:
+  retain evidence; retry only after documented causal remediation or verified
+  transient execution failure.
+
+Retry authorization must never be based on whether the mechanical response
+looks desirable.
+
+### 21.17 Repeated-realization extensibility
+
+Adding a later positive realization index at the same physical design point
+does not change any already assigned earlier:
+
+- realization ID;
+- particle seed;
+- void seed.
+
+This makes the identity/seed schedule append-only with respect to realization
+index.
+
+Step 8 may choose the required repeated-realization count without changing the
+identity of earlier indices.
+
+### 21.18 Step-7 / Step-8 ownership boundary
+
+Step 7 locks:
+
+- design identity semantics;
+- canonical serialization;
+- full design digest authority;
+- compact design ID semantics;
+- realization identity semantics;
+- seed derivation;
+- particle/void stream domain separation;
+- explicit `PCG64` use;
+- replay-provenance categories;
+- no-overwrite behavior;
+- append-only retry semantics;
+- repeated-realization identity semantics.
+
+Step 8 retains:
+
+- exact repeated-realization count;
+- final sampling strategy;
+- pilot sample size;
+- any explicit design-value sampling precision or quantization policy;
+- exact raw field names;
+- raw directory layout;
+- filename conventions;
+- final pilot record schema;
+- pilot QC thresholds;
+- stop conditions.
+
+### 21.19 Step-7 non-authorizations
+
+Step 7 does not authorize:
+
+- stochastic M9 pilot execution;
+- M10 production FEM generation;
+- machine-learning training;
+- final Step-8 sample size;
+- final repeated-realization count;
+- final raw-output directory layout;
+- final filename conventions;
+- silent source changes;
+- silent RNG changes;
+- seed substitution;
+- response-based realization replacement;
+- overwrite of prior durable evidence.
+
+### 21.20 Remaining exact M9 sequence
+
+M9 Steps 1-7 are complete at their currently authorized scientific-design
 scope.
 
 The next gate is:
-
-#### Step 7 — Stochastic reproducibility policy
-
-Lock:
-
-- deterministic design-point IDs;
-- deterministic realization IDs;
-- seed derivation/allocation;
-- repeated-realization policy;
-- non-overwrite behavior;
-- realization provenance.
 
 #### Step 8 — Pilot design and QC lock
 
 Lock:
 
-- sampling strategy;
+- final sampling strategy;
 - pilot size;
-- exact pilot success/failure schema;
+- repeated-realization count;
+- exact pilot success/failure record schema;
 - raw-output schema;
 - metadata;
 - QC thresholds/gates;
@@ -1694,7 +2188,7 @@ Only after Steps 4-9 pass may the stochastic M9 pilot begin.
 
 ---
 
-## 21. Machine-learning authorization boundary
+## 22. Machine-learning authorization boundary
 
 M9 is not an ML-training milestone.
 
@@ -1720,7 +2214,7 @@ QC/provenance gates are formally closed.
 
 ---
 
-## 22. Current checkpoint
+## 23. Current checkpoint
 
 At creation of this document:
 
@@ -1747,16 +2241,18 @@ At creation of this document:
 - M9 Step 6:
   `PASS / CONCEPTUALLY COMPLETE`
 - M9 Step 7:
+  `PASS / CONCEPTUALLY COMPLETE`
+- M9 Step 8:
   `NOT STARTED`
 - approximate M9 milestone progress:
-  `45%`
+  `57%`
 
 The percentage is an approximate milestone-progress indicator, not a
 mathematically exact project-completion measure.
 
 ---
 
-## 23. Documentation and provenance policy
+## 24. Documentation and provenance policy
 
 This M9 record is intended to be Git-tracked.
 
