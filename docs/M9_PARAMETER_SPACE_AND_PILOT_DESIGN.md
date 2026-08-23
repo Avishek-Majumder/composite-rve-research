@@ -12,9 +12,9 @@
 
 **Current M9 state:** IN PROGRESS
 
-**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, 4, 5, 6, and 7
+**Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, 4, 5, 6, 7, and 8
 
-**Next scientific gate:** Step 8 — Pilot Design and QC Lock
+**Next scientific gate:** Step 9 — Targeted Transfer-Validation
 
 **Stochastic M9 pilot:** NOT AUTHORIZED
 
@@ -2159,36 +2159,1777 @@ Step 7 does not authorize:
 
 ### 21.20 Remaining exact M9 sequence
 
-M9 Steps 1-7 are complete at their currently authorized scientific-design
+M9 Steps 1-8 are complete at their currently authorized scientific-design
 scope.
 
 The next gate is:
 
-#### Step 8 — Pilot design and QC lock
-
-Lock:
-
-- final sampling strategy;
-- pilot size;
-- repeated-realization count;
-- exact pilot success/failure record schema;
-- raw-output schema;
-- metadata;
-- QC thresholds/gates;
-- stop conditions.
-
 #### Step 9 — Targeted transfer-validation
 
-Deliberately test difficult/extreme final-domain conditions before pilot
+Deliberately test difficult/extreme final-domain conditions under the
+now-locked Step-8 pilot/FEM/QC contract before any stochastic-pilot
 authorization.
 
 #### Step 10 — Pilot authorization
 
-Only after Steps 4-9 pass may the stochastic M9 pilot begin.
+Only after Steps 4-9 pass, and after the Step-9 transfer-validation
+evidence has no unresolved contract failure, may the stochastic M9 pilot
+be formally authorized.
+
+Step-8 closure by itself does not create production design points, consume
+production sampling seeds, register design IDs, create stochastic
+realizations, authorize a writer implementation, or authorize pilot
+execution.
 
 ---
 
-## 22. Machine-learning authorization boundary
+## 22. M9 Step 8 — Pilot Design and QC Lock
+
+### 22.1 Status and scientific boundary
+
+**PASS / CONCEPTUALLY COMPLETE**
+
+M9 Step 8 permanently locks the stochastic-pilot design and quality-control
+contract that was deliberately left open by Steps 6 and 7.
+
+This lock fixes:
+
+- final sampling architecture;
+- exact pilot design-point count;
+- exact repeated-realization count;
+- production sampling RNG namespace and stream separation;
+- no-quantization sampling-value policy;
+- exact sampling-coordinate and scaling semantics;
+- exact sliced-LHS construction and optimization contract;
+- deterministic final design-row ordering;
+- raw-output namespace, path ownership and filename conventions;
+- immutable JSON byte serialization;
+- success/failure record families and field sets;
+- per-realization production hard gates;
+- repeat-level statistical reporting;
+- append-only attempt, retry and failure-adjudication semantics;
+- crash-durable no-clobber publication semantics;
+- pilot pause/stop conditions.
+
+Step 8 does **not** authorize:
+
+- creation of the production LHS;
+- consumption of production sampling RNG streams;
+- creation or registration of production design IDs;
+- creation of stochastic realizations;
+- production FEM execution;
+- implementation or execution of the final production writer;
+- M10 generation;
+- machine-learning training.
+
+The stochastic M9 pilot remains unauthorized until Step 10.
+
+### 22.2 Final sampling architecture
+
+The permanent Step-8 sampling architecture identifier is:
+
+`hybrid_pristine_independent_4D_LHS__defective_distance_guarded_sliced_5D_LHS`
+
+The deterministic stratum order is:
+
+1. `pristine_N0`;
+2. `defective_N1`;
+3. `defective_N2`;
+4. `defective_N4`.
+
+The defective slice order is therefore:
+
+`N1, N2, N4`.
+
+The final count is:
+
+- `n_per_stratum = 12`;
+- four strata;
+- `48` physical design points;
+- `12` pristine physical designs;
+- `36` defective physical designs.
+
+Void count is categorical/slice identity rather than a continuously scaled
+LHS coordinate. No categorical distance is invented.
+
+### 22.3 Unit-coordinate semantics
+
+For the pristine branch the exact unit-coordinate order is:
+
+1. `Ep_over_Em`;
+2. `nu_matrix`;
+3. `nu_particle`;
+4. `particle_area_fraction_requested`.
+
+For every defective slice the exact unit-coordinate order is:
+
+1. `Ep_over_Em`;
+2. `nu_matrix`;
+3. `nu_particle`;
+4. `particle_area_fraction_requested`;
+5. `void_area_fraction_requested`.
+
+Thus the four common continuous coordinates retain identical ordering
+between pristine and defective designs.
+
+The pristine state fixes:
+
+- `void_area_fraction_requested = 0`;
+- `void_count = 0`.
+
+The defective slices assign:
+
+- `void_count = 1`;
+- `void_count = 2`;
+- `void_count = 4`;
+
+respectively.
+
+Unit values are mapped to the already locked physical ranges using:
+
+`scipy.stats.qmc.scale(sample, l_bounds, u_bounds)`
+
+with the affine rule:
+
+`(upper_bound - lower_bound) * unit_coordinate + lower_bound`.
+
+The bounds remain:
+
+- `Ep_over_Em`: `[2, 30]`;
+- `nu_matrix`: `[0.25, 0.40]`;
+- `nu_particle`: `[0.15, 0.30]`;
+- `particle_area_fraction_requested`: `[0.08, 0.20]`;
+- defective `void_area_fraction_requested`: `[0.0075, 0.03]`.
+
+The value-formation order is:
+
+`sample unit coordinates -> scale -> validate locked domain -> Step-7 canonicalize -> hash`.
+
+Sampling-value quantization is:
+
+`NONE`.
+
+Pre-identity rounding, decimal-grid snapping, readability rounding, or
+other mutation of sampled physical values is forbidden.
+
+### 22.4 Pristine LHS constructor
+
+The pristine branch uses:
+
+`scipy.stats.qmc.LatinHypercube`
+
+with:
+
+- `d = 4`;
+- `strength = 1`;
+- `scramble = True`;
+- `optimization = None`;
+- explicit `rng = Generator(PCG64(pristine_lhs_seed))`.
+
+The generation call is:
+
+`sampler.random(n=12)`.
+
+No SciPy `random-cd` or Lloyd optimization is used.
+
+The permanent pristine sampling call-pattern identifier is:
+
+`scipy_lhs_d4_strength1_scramble_true_optimization_none_random_n12_v1`.
+
+### 22.5 Exact defective sliced-LHS constructor
+
+The permanent custom defective constructor identifier is:
+
+`m9_defective_sliced_lhs_3x12x5_v1`.
+
+Let:
+
+- number of slices `S = 3`;
+- rows per slice `n = 12`;
+- continuous dimensions `d = 5`.
+
+Construction uses an explicit:
+
+`Generator(PCG64(defective_sliced_lhs_seed))`.
+
+For each dimension `j = 0..4`, in ascending order:
+
+1. For each coarse stratum `k = 0..11`, in ascending order:
+   - call `rng.permutation(3)` exactly once, producing `p`;
+   - call `rng.random(3)` exactly once, producing `jitter`;
+   - for each slice `s = 0..2`, in ascending order, define the global
+     36-stratum index:
+     `g = 3*k + int(p[s])`;
+   - assign the intermediate coordinate:
+     `(g + float(jitter[s])) / 36`.
+
+2. After all 12 coarse strata for that dimension have been populated,
+   for each slice `s = 0..2`, in ascending order:
+   - call `rng.permutation(12)` exactly once;
+   - use that permutation to place the 12 intermediate coordinates into
+     the stable sampler row slots `0..11` for that slice/dimension.
+
+No other random call occurs in the sliced-LHS constructor.
+
+This construction must preserve simultaneously:
+
+- each defective slice as an exact 12-point five-dimensional LHS;
+- the pooled 36 defective points as an exact 36-point five-dimensional
+  LHS.
+
+### 22.6 Distance-guarded defective optimizer
+
+The permanent custom optimizer identifier is:
+
+`m9_distance_guarded_within_slice_coordinate_swap_v1`.
+
+It operates only on the defective sliced design.
+
+It uses:
+
+- explicit `Generator(PCG64(defective_swap_optimizer_seed))`;
+- exactly `2000` sequential proposals;
+- one within-slice, one-dimension coordinate swap per proposal.
+
+For every proposal, random calls occur in exactly this order:
+
+1. `s = int(rng.integers(0, 3))`;
+2. `j = int(rng.integers(0, 5))`;
+3. `a = int(rng.integers(0, 12))`;
+4. `raw = int(rng.integers(0, 11))`;
+5. `b = raw + (raw >= a)`.
+
+Therefore `a` and `b` are always distinct.
+
+The candidate swaps only:
+
+`current[s, a, j] <-> current[s, b, j]`.
+
+Row slots themselves never move.
+
+The four guarded metrics are:
+
+1. pooled five-dimensional centered discrepancy;
+2. worst defective-slice five-dimensional centered discrepancy;
+3. pooled five-dimensional minimum Euclidean pair distance;
+4. worst defective-slice five-dimensional minimum Euclidean pair
+   distance.
+
+Centered discrepancy is evaluated with:
+
+`scipy.stats.qmc.discrepancy(..., method="CD")`.
+
+The floating comparison tolerance for values `a` and `b` is:
+
+`64 * np.finfo(np.float64).eps * max(1.0, abs(a), abs(b))`.
+
+Define tolerance-aware comparisons:
+
+- non-worsening lower-is-better:
+  `new <= old + tolerance`;
+- non-worsening higher-is-better:
+  `new + tolerance >= old`;
+- strict lower-is-better improvement:
+  `new < old - tolerance`.
+
+A proposal is accepted only if all four hard guards hold:
+
+- pooled CD does not worsen;
+- worst-slice CD does not worsen;
+- pooled minimum distance does not decrease;
+- worst-slice minimum distance does not decrease;
+
+**and** at least one discrepancy objective strictly improves:
+
+- pooled CD strictly improves; or
+- worst-slice CD strictly improves.
+
+Proposals are applied sequentially. After an accepted swap, the accepted
+candidate becomes the current state for the next proposal. A rejected
+proposal leaves the current state unchanged.
+
+No absolute centered-discrepancy threshold and no absolute minimum-distance
+threshold is introduced.
+
+### 22.7 Final row order and design-ID list order
+
+The final deterministic row order is:
+
+`pristine_N0 -> defective_N1 -> defective_N2 -> defective_N4`.
+
+Within every stratum, row slots remain:
+
+`sampler_row_index = 0..11`
+
+in ascending order.
+
+The optimizer swaps coordinate values while preserving row slots.
+
+`pilot_plan.json` must list `design_ids` in exactly:
+
+`stratum order -> sampler_row_index ascending`.
+
+### 22.8 Production sampling RNG namespace and seeds
+
+The permanent pilot sampling namespace is:
+
+`composite-rve-m9-pilot-sampling-v1`.
+
+This namespace is distinct from the Step-7 physical-realization namespace:
+
+`composite-rve-m9-stochastic-v1`.
+
+The sampling bit generator is:
+
+`PCG64`.
+
+Every sampling/optimizer stream uses:
+
+`Generator(PCG64(seed))`.
+
+The seed derivation rule is:
+
+`SHA256(UTF8(seed_material))`
+
+followed by interpreting the first 16 digest bytes as an unsigned
+big-endian 128-bit integer.
+
+The three permanent stream labels are:
+
+1. `pristine_lhs`;
+2. `defective_sliced_lhs`;
+3. `defective_swap_optimizer`.
+
+For `pristine_lhs`:
+
+`seed_material = composite-rve-m9-pilot-sampling-v1|architecture=hybrid_pristine_independent_4D_LHS__defective_distance_guarded_sliced_5D_LHS|n_per_stratum=12|optimizer_proposals=2000|stream=pristine_lhs`
+
+`seed_sha256 = 4aac34322ef2054cfe164694729687eca93eb1a9bff2d8300c2452db82436ba2`
+
+`seed_uint128 = 99257005408988176079290369073919461356`
+
+For `defective_sliced_lhs`:
+
+`seed_material = composite-rve-m9-pilot-sampling-v1|architecture=hybrid_pristine_independent_4D_LHS__defective_distance_guarded_sliced_5D_LHS|n_per_stratum=12|optimizer_proposals=2000|stream=defective_sliced_lhs`
+
+`seed_sha256 = 77f1d707634729957ea2f4598026937da4f79c1ec475a9abe0fa27d82c759798`
+
+`seed_uint128 = 159433836344698851123241991176116933501`
+
+For `defective_swap_optimizer`:
+
+`seed_material = composite-rve-m9-pilot-sampling-v1|architecture=hybrid_pristine_independent_4D_LHS__defective_distance_guarded_sliced_5D_LHS|n_per_stratum=12|optimizer_proposals=2000|stream=defective_swap_optimizer`
+
+`seed_sha256 = 0ee7cbc340ede6f11c19c2f23038f1f0affc1a6fa67d6550f5f56164044cfcdc`
+
+`seed_uint128 = 19812745314046245613281732677175144944`
+
+These production sampling seeds must not be replaced with the diagnostic
+seeds used during the read-only Step-8 audits.
+
+### 22.9 Sampling-design QC gates
+
+The production sampling design must pass all of the following before any
+design identity is registered:
+
+- all pristine coordinates finite and inside the unit sampling domain;
+- pristine design is an exact four-dimensional 12-point LHS;
+- zero duplicate pristine design rows;
+- all defective coordinates finite and inside the unit sampling domain;
+- each defective slice is an exact five-dimensional 12-point LHS;
+- pooled defective design is an exact five-dimensional 36-point LHS;
+- zero duplicate defective design rows;
+- optimized pooled centered discrepancy is not worse than raw sliced LHS;
+- optimized worst-slice centered discrepancy is not worse than raw;
+- optimized pooled minimum distance is not lower than raw;
+- optimized worst-slice minimum distance is not lower than raw;
+- the optimizer strictly improves at least one centered-discrepancy
+  objective.
+
+Allowed counts are:
+
+- LHS violations: `0`;
+- duplicate design rows: `0`;
+- optimizer-contract failures: `0`.
+
+The exact constructor/optimizer was challenged across 32 independent
+diagnostic replicates before this lock. The structural LHS, duplicate,
+finite-metric, and optimizer-contract failure counts were all zero.
+
+The mixed pristine-plus-defective common-four-dimensional minimum-distance
+comparison was better-or-equal to an independent reference in `21/32`
+diagnostic replicates. That quantity is explicitly a diagnostic rather
+than an optimizer hard guard and therefore does not create an additional
+Step-8 acceptance threshold.
+
+### 22.10 Repeated-realization contract
+
+Every valid physical design point has exactly:
+
+`8`
+
+scheduled stochastic realization identities.
+
+Their indices are:
+
+`1, 2, 3, 4, 5, 6, 7, 8`.
+
+The pilot therefore schedules:
+
+`48 * 8 = 384`
+
+stochastic realizations.
+
+Repeated realizations at one design point are conditional samples of:
+
+`Y | X_i`.
+
+The Step-7 realization-ID and physical particle/void seed derivation
+remains unchanged.
+
+Later realization indices remain append-only and must not alter any
+existing earlier realization identity or seed.
+
+### 22.11 Repeat-level statistical reporting
+
+For every response for which the statistic is semantically defined,
+Step 8 requires reporting:
+
+- sample mean;
+- sample standard deviation with `ddof = 1`;
+- sample coefficient of variation when the mean makes it well-defined;
+- nominal two-sided 95% Student-t confidence interval on the mean.
+
+Historical M8 variability was used only as planning evidence.
+
+There is no Step-8 hard acceptance threshold on:
+
+- stochastic confidence-interval width;
+- coefficient of variation;
+- realization failure rate.
+
+No realization may be replaced because its response, CV, or confidence
+interval is inconvenient.
+
+### 22.12 Per-realization production hard-gate families
+
+Every applicable realization must retain the reusable executable
+production invariants selected during Step 8.
+
+Required gate families are:
+
+- authority and design identity;
+- locked Step-6 geometry/feasibility;
+- locked Step-7 seed identity;
+- non-overwrite and retry provenance;
+- physical geometry and area consistency;
+- mesh and physical-tag integrity;
+- periodic geometry and MPC integrity;
+- PETSc convergence;
+- gauge and periodic-field accuracy;
+- algebraic residual;
+- finite homogenized response;
+- positive load-direction stiffness;
+- Hill-Mandel energy consistency;
+- defective local-response validity.
+
+The principal retained numerical thresholds are:
+
+- periodic geometry maximum error: `1e-10`;
+- zero-gauge maximum absolute value: `1e-12`;
+- periodic-field normalized maximum error: `1e-10`;
+- constrained algebraic relative residual maximum: `1e-10`;
+- Hill-Mandel relative mismatch maximum: `1e-5`;
+- mesh area-fraction tolerance: `0.005`;
+- area-closure absolute tolerance: `1e-10`;
+- local-normalization absolute tolerance: `1e-12`;
+- defective production quadrature degree: `8`;
+- PETSc convergence reason: strictly `> 0`.
+
+Required response validity includes:
+
+- finite homogenized stresses;
+- finite recovered stiffness values;
+- positive requested load-direction stiffness;
+- for defective cases, finite and non-negative `K_vm_tail10_X`.
+
+The defective permanent local metric is:
+
+`m8_matrix_vm_annulus_quadrature_tail10_v1`.
+
+Its normalization is exactly:
+
+`abs(Sigma_11)`
+
+from the gross-RVE X-load response.
+
+For pristine cases:
+
+- global response remains required after successful FEM execution;
+- local-response status is `not_applicable`;
+- reason is `pristine_no_physical_voids`;
+- `K_vm_tail10_X = null`;
+- numerical zero substitution is forbidden.
+
+### 22.13 Pilot and raw namespaces
+
+The permanent pilot namespace is:
+
+`composite-rve-m9-pilot-v1`.
+
+The permanent raw root is:
+
+`results/raw/05_m9_stochastic_pilot`.
+
+The path hierarchy is:
+
+```text
+results/raw/05_m9_stochastic_pilot/
+  sampling_provenance.json
+  planning_failures/
+    failure_<minimum-six-digit-index>.json
+  pilot_plan.json
+  designs/
+    <design_id>/
+      design.json
+      realizations/
+        <realization_id>/
+          realization.json
+          failure_adjudication.json   # only when terminally adjudicated
+          attempt_diagnoses/
+            attempt_<minimum-six-digit-index>.json
+          retry_authorizations/
+            attempt_<minimum-six-digit-index>.json
+          attempts/
+            attempt_<minimum-six-digit-index>/
+              attempt_identity.json
+              geometry/
+              mesh/
+              fem/
+              response/
+              attempt_result.json
+              artifact_manifest.json
+  pilot_completion_manifest.json
+```
+
+Path ownership is:
+
+- pilot root -> one Step-8 pilot namespace;
+- `<design_id>` -> one deterministic physical design state;
+- `<realization_id>` -> one stochastic scientific realization;
+- `attempt_<index>` -> one execution attempt for that same realization.
+
+### 22.14 Schema namespace
+
+The permanent Step-8 record schemas are:
+
+- `m9_pilot_sampling_provenance_v1`;
+- `m9_pilot_planning_failure_v1`;
+- `m9_pilot_plan_v1`;
+- `m9_pilot_design_v1`;
+- `m9_pilot_realization_v1`;
+- `m9_pilot_attempt_identity_v1`;
+- `m9_pilot_attempt_result_v1`;
+- `m9_pilot_attempt_artifact_manifest_v1`;
+- `m9_pilot_attempt_diagnosis_v1`;
+- `m9_pilot_retry_authorization_v1`;
+- `m9_pilot_failure_adjudication_v1`;
+- `m9_pilot_completion_manifest_v1`.
+
+A deliberate incompatible future schema/layout/RNG change requires an
+explicit new version boundary.
+
+### 22.15 Immutable JSON byte serialization
+
+All permanent Step-8 JSON records use:
+
+- UTF-8 encoding;
+- no BOM;
+- string object keys only;
+- `sort_keys = True`;
+- `ensure_ascii = True`;
+- `allow_nan = False`;
+- `indent = None`;
+- `separators = (",", ":")`;
+- exactly one terminal LF byte.
+
+SHA-256 is calculated over the exact UTF-8 bytes including that terminal
+LF.
+
+Mapping insertion order must therefore not alter authenticated bytes.
+
+### 22.16 Sampling-provenance record
+
+`sampling_provenance.json` uses schema:
+
+`m9_pilot_sampling_provenance_v1`.
+
+Its top-level fields are exactly:
+
+- `schema`;
+- `sampling_namespace`;
+- `sampling_architecture`;
+- `sampling_value_quantization`;
+- `n_per_stratum`;
+- `optimizer_proposals`;
+- `bit_generator`;
+- `generator_construction`;
+- `python_version`;
+- `numpy_version`;
+- `scipy_version`;
+- `qmc_engine`;
+- `qmc_strength`;
+- `qmc_scramble`;
+- `qmc_builtin_optimization`;
+- `custom_optimizer`;
+- `streams`;
+- `repository_head`;
+- `repository_tree`;
+- `numpy_build_config_sha256`;
+- `execution_environment_manifest_sha256`;
+- `source_authorities`.
+
+Every `streams` entry contains exactly:
+
+- `stream`;
+- `seed_material`;
+- `seed_sha256`;
+- `seed_uint128_decimal`;
+- `bit_generator`;
+- `generator_construction`;
+- `producer`;
+- `rng_call_pattern_id`.
+
+`seed_uint128_decimal` is stored as an unsigned base-10 decimal string.
+
+Producers/call-pattern IDs are:
+
+- `pristine_lhs`:
+  producer `scipy.stats.qmc.LatinHypercube`,
+  call-pattern ID
+  `scipy_lhs_d4_strength1_scramble_true_optimization_none_random_n12_v1`;
+- `defective_sliced_lhs`:
+  producer `project_sliced_lhs`,
+  call-pattern ID `m9_defective_sliced_lhs_3x12x5_v1`;
+- `defective_swap_optimizer`:
+  producer `project_distance_guarded_optimizer`,
+  call-pattern ID `m9_distance_guarded_swap_proposals_2000_v1`.
+
+The `streams` array order is exactly:
+
+1. `pristine_lhs`;
+2. `defective_sliced_lhs`;
+3. `defective_swap_optimizer`.
+
+Every sampling `source_authorities` entry contains exactly:
+
+- `role`;
+- `repo_relative_path`;
+- `git_blob_sha1`;
+- `sha256`.
+
+Required sampling-source roles are:
+
+- `pilot_sampler`;
+- `sliced_lhs_constructor`;
+- `distance_guarded_optimizer`;
+- `design_identity`;
+- `raw_writer`.
+
+Every required role must occur at least once.
+
+The pair:
+
+`(role, repo_relative_path)`
+
+must be unique.
+
+Sampling-source entries are ordered by:
+
+`role -> repo_relative_path`
+
+using UTF-8 lexicographic ordering.
+
+Every referenced path must be tracked at the recorded sampling
+`repository_head`.
+
+The recorded `repository_tree` provides transitive tracked-source
+authority.
+
+### 22.17 Pilot-plan record
+
+`pilot_plan.json` uses schema:
+
+`m9_pilot_plan_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `pilot_namespace`;
+- `sampling_namespace`;
+- `sampling_architecture`;
+- `sampling_value_quantization`;
+- `n_per_stratum`;
+- `strata`;
+- `design_point_count`;
+- `repeats_per_design`;
+- `scheduled_realization_count`;
+- `optimizer_proposals`;
+- `sampling_provenance_sha256`;
+- `design_ids`;
+- `repository_head`;
+- `repository_tree`;
+- `project_status_sha256`;
+- `m9_design_sha256`.
+
+
+`strata` is exactly the ordered JSON array:
+
+`["pristine_N0","defective_N1","defective_N2","defective_N4"]`
+
+The `design_ids` array follows exactly the already locked order:
+
+`stratum order -> sampler_row_index ascending`.
+
+It is created once only after all 48 production sample rows have passed
+locked-domain validation and their design identities exist.
+
+It is immutable.
+
+If any sampled row fails design validation, `pilot_plan.json` must remain
+absent.
+
+### 22.18 Design record
+
+Every `<design_id>/design.json` uses schema:
+
+`m9_pilot_design_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `design_id`;
+- `design_sha256`;
+- `canonical_design_material`;
+- `stratum`;
+- `sampling_unit_coordinates`;
+- `physical_inputs`;
+- `sampling_provenance_sha256`.
+
+
+For a pristine design, `sampling_unit_coordinates` is an ordered JSON
+array of length `4` in the exact coordinate order locked in Section 22.3.
+
+For a defective design, `sampling_unit_coordinates` is an ordered JSON
+array of length `5` in the exact defective-coordinate order locked in
+Section 22.3.
+
+`physical_inputs` is a JSON object containing exactly the six physical
+input keys:
+
+- `Ep_over_Em`;
+- `nu_matrix`;
+- `nu_particle`;
+- `particle_area_fraction_requested`;
+- `void_area_fraction_requested`;
+- `void_count`.
+
+The five continuous values are finite JSON numbers.
+
+`void_count` is a non-negative JSON integer and not a Boolean value.
+
+The record is created once and is immutable.
+
+### 22.19 Realization record
+
+Every `<realization_id>/realization.json` uses schema:
+
+`m9_pilot_realization_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `design_id`;
+- `design_sha256`;
+- `canonical_design_material`;
+- `realization_id`;
+- `realization_index`;
+- `particle_seed`;
+- `void_seed_status`;
+- `void_seed`;
+- `rng_bit_generator`;
+- `rng_namespace`.
+
+`rng_namespace` is:
+
+`composite-rve-m9-stochastic-v1`.
+
+For defective realizations:
+
+- `void_seed_status = applicable`;
+- `void_seed` is the deterministic Step-7 void seed.
+
+For pristine realizations:
+
+- `void_seed_status = not_applicable`;
+- `void_seed = null`.
+
+A fabricated pristine numerical void seed is forbidden.
+
+### 22.20 Attempt identity and attempt ID
+
+Attempt indices are positive integers beginning at `1`.
+
+Their decimal rendering has a minimum width of six digits and no defined
+maximum.
+
+Define:
+
+`attempt_id = <realization_id>-A<minimum-six-digit-positive-attempt-index>`.
+
+Define the directory:
+
+`attempt_<minimum-six-digit-positive-attempt-index>`.
+
+Attempt indices are never reused.
+
+Directory reservation consumes the attempt index even if execution is
+interrupted before the identity file commits.
+
+`attempt_identity.json` uses schema:
+
+`m9_pilot_attempt_identity_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `attempt_index`;
+- `attempt_id`;
+- `design_id`;
+- `design_sha256`;
+- `realization_id`;
+- `realization_index`;
+- `particle_seed`;
+- `void_seed_status`;
+- `void_seed`;
+- `retry_authorization_sha256`;
+- `repository_head`;
+- `repository_tree`;
+- `source_authorities`;
+- `environment_authorities`;
+- `execution_started_at_utc`.
+
+
+For attempt index `1`:
+
+`retry_authorization_sha256 = null`.
+
+For every attempt index greater than `1`, an authenticated immutable retry
+authorization must already exist before `attempt_identity.json` commits.
+
+For such a retry:
+
+`retry_authorization_sha256`
+
+must equal the SHA-256 of that exact retry-authorization record.
+
+It must be durably committed before scientific stage execution.
+
+### 22.21 Source-authority schema
+
+Every `source_authorities` entry contains exactly:
+
+- `role`;
+- `repo_relative_path`;
+- `git_blob_sha1`;
+- `sha256`.
+
+Required roles are:
+
+- `pilot_orchestrator`;
+- `design_identity`;
+- `raw_writer`;
+- `geometry_generator`;
+- `mesh_generator`;
+- `fem_solver`;
+- `local_response_evaluator`.
+
+Entries are ordered by:
+
+`role`, then `repo_relative_path`
+
+using UTF-8 lexicographic ordering.
+
+Every path must be tracked at the attempt repository HEAD.
+
+The repository tree digest provides transitive tracked-source authority.
+
+### 22.22 Environment-authority schema
+
+`environment_authorities` contains exactly:
+
+- `conda_default_env`;
+- `python_version`;
+- `numpy_version`;
+- `numpy_build_config_sha256`;
+- `scipy_version`;
+- `gmsh_version`;
+- `dolfinx_version`;
+- `petsc_version`;
+- `mpi4py_version`;
+- `mpi_size`;
+- `platform_system`;
+- `platform_release`;
+- `platform_machine`;
+- `execution_environment_manifest_sha256`.
+
+Actual authenticated execution values are recorded.
+
+Silent environment substitution is forbidden.
+
+### 22.23 Timestamp contract
+
+Permanent execution timestamps use exactly:
+
+`YYYY-MM-DDTHH:MM:SS.ffffffZ`.
+
+They are:
+
+- UTC;
+- timezone-aware before rendering;
+- exactly six fractional-second digits.
+
+### 22.24 Stage status and failure-stage contract
+
+Attempt stage keys are exactly:
+
+- `geometry`;
+- `mesh`;
+- `fem`;
+- `response`.
+
+Stage-status values are:
+
+- `success`;
+- `failure`;
+- `skipped`.
+
+`not_applicable` is not used as a top-level pipeline stage status for a
+valid design. Subresponse non-applicability is represented inside response
+applicability.
+
+
+In `attempt_result.json`, `stage_status` is a JSON object containing
+exactly these four keys:
+
+- `geometry`;
+- `mesh`;
+- `fem`;
+- `response`.
+
+The exact mappings are:
+
+`invalid_geometry`:
+`geometry=failure, mesh=skipped, fem=skipped, response=skipped`
+
+`mesh_failure`:
+`geometry=success, mesh=failure, fem=skipped, response=skipped`
+
+`fem_failure`:
+`geometry=success, mesh=success, fem=failure, response=skipped`
+
+`response_failure`:
+`geometry=success, mesh=success, fem=success, response=failure`
+
+`success`:
+`geometry=success, mesh=success, fem=success, response=success`
+
+`invalid_design_input` has no attempt-stage object because it is intercepted
+at the planning boundary before legal attempt identity exists.
+
+Attempt `failure_stage` values are:
+
+- `geometry`;
+- `mesh`;
+- `fem`;
+- `response`.
+
+Successful attempts use:
+
+`failure_stage = null`.
+
+The failure mapping is:
+
+- `invalid_geometry -> geometry`;
+- `mesh_failure -> mesh`;
+- `fem_failure -> fem`;
+- `response_failure -> response`.
+
+`invalid_design_input` is a planning failure at:
+
+`design_validation`
+
+before legal design identity exists.
+
+### 22.25 Raw stage leaf filenames
+
+The declared stage paths are:
+
+```text
+geometry/geometry.json
+geometry/stdout.log
+geometry/stderr.log
+
+mesh/mesh.msh
+mesh/mesh_diagnostics.json
+mesh/stdout.log
+mesh/stderr.log
+
+fem/pbc_X.json
+fem/pbc_X.stdout.log
+fem/pbc_X.stderr.log
+fem/pbc_Y.json
+fem/pbc_Y.stdout.log
+fem/pbc_Y.stderr.log
+fem/pbc_XY.json
+fem/pbc_XY.stdout.log
+fem/pbc_XY.stderr.log
+fem/tensor_audit.json
+
+response/response.json
+response/stdout.log
+response/stderr.log
+```
+
+A failed stage may legitimately contain only a subset of its declared
+paths.
+
+An unproduced file must never be fabricated to make a directory look
+complete.
+
+### 22.26 Attempt-result record
+
+`attempt_result.json` uses schema:
+
+`m9_pilot_attempt_result_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `attempt_index`;
+- `attempt_id`;
+- `design_id`;
+- `design_sha256`;
+- `realization_id`;
+- `realization_index`;
+- `top_level_classification`;
+- `failure_stage`;
+- `failure_reason`;
+- `stage_status`;
+- `response_applicability`;
+- `response_summary`;
+- `execution_completed_at_utc`.
+
+Top-level classifications are exactly:
+
+- `invalid_design_input`;
+- `invalid_geometry`;
+- `mesh_failure`;
+- `fem_failure`;
+- `response_failure`;
+- `success`.
+
+In ordinary realization-attempt directories,
+`invalid_design_input` cannot occur because that condition is intercepted
+before design identity formation and stored as a planning failure.
+
+
+`response_applicability` is a JSON object containing exactly:
+
+- `global_response`;
+- `local_response`.
+
+For a pristine realization it is exactly:
+
+`{"global_response":"applicable","local_response":"not_applicable"}`
+
+For a defective realization it is exactly:
+
+`{"global_response":"applicable","local_response":"applicable"}`
+
+This field describes scientific applicability. It does not claim that a
+failed attempt actually produced a valid response.
+
+For a successful attempt:
+
+`failure_reason = null`.
+
+For every failed realization attempt:
+
+`failure_reason`
+
+is a non-empty UTF-8 string.
+
+For a failure attempt:
+
+`response_summary = null`.
+
+Valid partial native stage artifacts remain durable evidence but are not
+promoted into a fabricated success response summary.
+
+### 22.27 Success response-summary schema
+
+A successful response summary contains exactly these top-level groups:
+
+- `Cbar_over_Em`;
+- `engineering_constants`;
+- `local_response`.
+
+`Cbar_over_Em` contains:
+
+- `C11`;
+- `C12`;
+- `C16`;
+- `C21`;
+- `C22`;
+- `C26`;
+- `C61`;
+- `C62`;
+- `C66`.
+
+All nine actually recovered normalized components are retained. No
+isotropy or orthotropy projection is introduced.
+
+`engineering_constants` contains:
+
+- `Ex_over_Em`;
+- `Ey_over_Em`;
+- `Gxy_over_Em`;
+- `nu_xy`;
+- `nu_yx`.
+
+`local_response` contains:
+
+- `status`;
+- `reason`;
+- `metric_id`;
+- `K_vm_tail10_X`.
+
+For pristine success:
+
+- `status = not_applicable`;
+- `reason = pristine_no_physical_voids`;
+- `metric_id = m8_matrix_vm_annulus_quadrature_tail10_v1`;
+- `K_vm_tail10_X = null`.
+
+For defective success:
+
+- `status = valid`;
+- `metric_id = m8_matrix_vm_annulus_quadrature_tail10_v1`;
+- `K_vm_tail10_X` is finite and non-negative.
+
+### 22.28 Artifact-manifest record
+
+`artifact_manifest.json` uses schema:
+
+`m9_pilot_attempt_artifact_manifest_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `attempt_index`;
+- `attempt_id`;
+- `design_id`;
+- `design_sha256`;
+- `realization_id`;
+- `files`.
+
+Each `files` entry contains exactly:
+
+- `relative_path`;
+- `sha256`;
+- `size_bytes`;
+- `role`.
+
+Permitted artifact roles are:
+
+- `attempt_identity`;
+- `geometry_record`;
+- `geometry_stdout`;
+- `geometry_stderr`;
+- `mesh_file`;
+- `mesh_diagnostics`;
+- `mesh_stdout`;
+- `mesh_stderr`;
+- `fem_load_response`;
+- `fem_stdout`;
+- `fem_stderr`;
+- `tensor_audit`;
+- `response_record`;
+- `response_stdout`;
+- `response_stderr`;
+- `attempt_result`.
+
+Manifest file entries are ordered by:
+
+`relative_path`
+
+using ascending UTF-8 byte lexicographic ordering.
+
+Relative paths must be unique.
+
+The manifest hashes all committed files inside that attempt except the
+manifest itself.
+
+The artifact manifest is the final immutable commit marker for an attempt.
+
+No scientific file may be written after it commits.
+
+### 22.29 Append-only and crash-state semantics
+
+The raw attempt states are interpreted as:
+
+- no attempt directory -> `not_started`;
+- attempt directory but identity absent ->
+  `interrupted_preidentity_reservation`;
+- identity present but unreadable/unauthenticated ->
+  unresolved hard stop;
+- identity committed, result absent ->
+  started incomplete execution;
+- result committed, manifest absent ->
+  terminal result not yet committed as a complete attempt;
+- manifest present but authentication fails ->
+  attempt-manifest invalid hard stop;
+- manifest committed and all hashes authenticate ->
+  committed attempt.
+
+
+An occupied attempt directory that is not an authenticated committed
+attempt must be represented, when formally diagnosed, by an immutable
+realization-level diagnosis record at:
+
+`designs/<design_id>/realizations/<realization_id>/attempt_diagnoses/attempt_<minimum-six-digit-index>.json`.
+
+Its schema is:
+
+`m9_pilot_attempt_diagnosis_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `design_id`;
+- `design_sha256`;
+- `realization_id`;
+- `realization_index`;
+- `attempt_index`;
+- `attempt_id`;
+- `raw_state`;
+- `retry_authorization_sha256`;
+- `diagnosis_reason`;
+- `retained_file_records`;
+- `diagnosed_at_utc`;
+- `repository_head`;
+- `repository_tree`;
+- `project_status_sha256`;
+- `m9_design_sha256`.
+
+Permitted diagnosis `raw_state` values are exactly:
+
+- `interrupted_preidentity_reservation`;
+- `identity_unreadable_or_unauthenticated`;
+- `identity_committed_result_absent`;
+- `result_committed_manifest_absent`;
+- `manifest_authentication_failed`.
+
+`diagnosis_reason` is a non-empty UTF-8 string.
+
+Every `retained_file_records` entry contains exactly:
+
+- `relative_path`;
+- `sha256`;
+- `size_bytes`.
+
+The retained-file scope is every regular file recursively present inside
+the attempt directory at diagnosis time.
+
+Paths are relative to that attempt directory and are ordered by ascending
+UTF-8 byte lexicographic order.
+
+The attempt-diagnosis record is stored outside the attempt directory.
+
+After diagnosis commits, mutation of that diagnosed attempt directory is
+forbidden.
+
+For attempt index `1`:
+
+`retry_authorization_sha256 = null`.
+
+For a later retry attempt, the diagnosis records the authenticated retry
+authorization SHA-256 if that authorization had committed before the
+interruption. Otherwise the field is `null`.
+
+The attempt-diagnosis record is immutable.
+
+Any syntactically valid existing attempt directory consumes its index.
+
+Incomplete attempt directories are never reused.
+
+The next retry index is one plus the highest existing attempt-directory
+index, but execution of that retry is forbidden until all existing attempt
+evidence has been authenticated or formally diagnosed.
+
+### 22.30 Crash-durable no-clobber publication
+
+Exclusive `"x"` creation alone is collision protection, not a complete
+crash-durability boundary.
+
+Permanent immutable files use the tested same-filesystem publication
+sequence:
+
+1. reserve required directory and synchronize its parent directory;
+2. create a same-directory staging file exclusively;
+3. write complete bytes;
+4. flush userspace buffering;
+5. `fsync` the staging file;
+6. synchronize the containing directory as required;
+7. hard-link the staged inode to the final path with no-clobber semantics;
+8. `fsync` the containing directory;
+9. authenticate final bytes;
+10. unlink the staging alias;
+11. `fsync` the containing directory again.
+
+Existing final destination -> hard stop.
+
+Ordinary overwrite, `open(..., "w")`, `Path.replace`, `os.replace`, or
+check-then-overwrite semantics are forbidden for final durable scientific
+evidence.
+
+The non-production ext4 preflight confirmed the required syscall and
+filesystem support on the current repository filesystem. It did not
+simulate power loss.
+
+### 22.31 Attempt commit order
+
+One attempt uses this order:
+
+1. reserve attempt directory;
+2. durably commit `attempt_identity.json`;
+3. execute and close geometry outputs;
+4. execute and close mesh outputs;
+5. execute and close FEM outputs;
+6. execute and close response outputs;
+7. durably commit `attempt_result.json`;
+8. hash all durable attempt files;
+9. durably commit `artifact_manifest.json` as final marker.
+
+No log handle may remain open at artifact-manifest commit.
+
+An undeclared scientific write after manifest commit is a contract breach.
+
+### 22.32 Retry contract
+
+Blind rerun-until-success is forbidden.
+
+Seed substitution after failure is forbidden.
+
+Response-based realization replacement or cherry-picking is forbidden.
+
+An authorized retry requires either:
+
+- documented causal remediation; or
+- verified transient execution failure.
+
+It preserves:
+
+- `design_id`;
+- full `design_sha256`;
+- `realization_id`;
+- `realization_index`;
+- `particle_seed`;
+- applicable `void_seed`.
+
+It changes only:
+
+- attempt index;
+- execution provenance associated with that attempt.
+
+
+Every retry attempt with index greater than `1` requires an immutable
+authorization record at:
+
+`designs/<design_id>/realizations/<realization_id>/retry_authorizations/attempt_<minimum-six-digit-index>.json`.
+
+Its schema is:
+
+`m9_pilot_retry_authorization_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `design_id`;
+- `design_sha256`;
+- `realization_id`;
+- `realization_index`;
+- `authorized_attempt_index`;
+- `authorized_attempt_id`;
+- `prior_attempt_index`;
+- `prior_attempt_id`;
+- `prior_evidence_kind`;
+- `prior_evidence_sha256`;
+- `authorization_basis`;
+- `authorization_reason`;
+- `authorized_at_utc`;
+- `repository_head`;
+- `repository_tree`;
+- `project_status_sha256`;
+- `m9_design_sha256`.
+
+`prior_evidence_kind` is exactly one of:
+
+- `artifact_manifest`;
+- `attempt_diagnosis`.
+
+The referenced prior evidence is the immediately preceding occupied
+attempt index.
+
+Before retry authorization, all existing attempt directories must either:
+
+- authenticate as committed attempts through their artifact manifests; or
+- be covered by immutable attempt-diagnosis evidence.
+
+The only authorization-basis values are:
+
+- `documented_causal_remediation`;
+- `verified_transient_execution_failure`.
+
+`authorization_reason` is a non-empty UTF-8 string.
+
+The retry-authorization record is immutable.
+
+The retry sequence is:
+
+1. authenticate all existing attempt evidence;
+2. select the next never-used attempt index;
+3. reserve that attempt directory and synchronize its parent;
+4. durably commit the retry-authorization record;
+5. durably commit `attempt_identity.json` binding the authorization hash;
+6. begin scientific stage execution.
+
+A crash after directory reservation but before retry authorization leaves
+an `interrupted_preidentity_reservation` whose diagnosis has:
+
+`retry_authorization_sha256 = null`.
+
+A crash after retry authorization commits but before attempt identity
+commits leaves the same raw-state class, but its diagnosis binds the
+authenticated retry-authorization SHA-256.
+
+Retry authorization does not override the existing rule that a successful
+authenticated realization attempt is skipped rather than rerun.
+
+Earlier failed evidence remains durable.
+
+### 22.33 Failure-adjudication contract
+
+A realization-level terminal failure is recorded at:
+
+`designs/<design_id>/realizations/<realization_id>/failure_adjudication.json`.
+
+The schema is:
+
+`m9_pilot_failure_adjudication_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `design_id`;
+- `design_sha256`;
+- `realization_id`;
+- `realization_index`;
+- `terminal_attempt_index`;
+- `terminal_attempt_id`;
+- `terminal_attempt_manifest_sha256`;
+- `terminal_top_level_classification`;
+- `adjudication_status`;
+- `adjudication_reason`;
+- `adjudicated_at_utc`;
+- `repository_head`;
+- `repository_tree`;
+- `project_status_sha256`;
+- `m9_design_sha256`.
+
+The only Step-8 adjudication status is:
+
+`terminal_no_retry_in_this_pilot_namespace`.
+
+Allowed terminal classifications are:
+
+- `invalid_geometry`;
+- `mesh_failure`;
+- `fem_failure`;
+- `response_failure`.
+
+A failure adjudication is immutable.
+
+Once failure is terminally adjudicated, retry in the same pilot namespace
+is forbidden.
+
+### 22.34 Invalid-design-input planning boundary
+
+Locked-domain validation occurs:
+
+`after scale -> before canonicalization and design hash`.
+
+Therefore an `invalid_design_input` has:
+
+- no `design_id`;
+- no `realization_id`;
+- no `attempt_id`;
+- no stochastic-realization-attempt identity.
+
+It is stored as a pilot planning failure under:
+
+`planning_failures/failure_<minimum-six-digit-index>.json`.
+
+The schema is:
+
+`m9_pilot_planning_failure_v1`.
+
+Fields are exactly:
+
+- `schema`;
+- `failure_index`;
+- `failure_classification`;
+- `failure_stage`;
+- `failure_reason`;
+- `stratum`;
+- `sampler_row_index`;
+- `sampling_unit_coordinates`;
+- `scaled_physical_inputs`;
+- `sampling_provenance_sha256`;
+- `repository_head`;
+- `repository_tree`;
+- `detected_at_utc`.
+
+
+`sampling_unit_coordinates` retains the ordered JSON-array shape applicable
+to the sampled stratum.
+
+`scaled_physical_inputs` uses the same exact six-key JSON object shape and
+numeric-type contract as `physical_inputs` in Section 22.18.
+
+Required values are:
+
+- `failure_classification = invalid_design_input`;
+- `failure_stage = design_validation`.
+
+Planning failures are ordered by deterministic stratum order followed by
+sampler row index.
+
+If any production sampling row fails domain validation:
+
+- hard stop before design identity registration;
+- preserve the immutable planning-failure evidence;
+- `pilot_plan.json` must remain absent.
+
+### 22.35 Pilot-completion contract
+
+`pilot_completion_manifest.json` uses schema:
+
+`m9_pilot_completion_manifest_v1`.
+
+Its fields are exactly:
+
+- `schema`;
+- `pilot_plan_sha256`;
+- `sampling_provenance_sha256`;
+- `scheduled_design_count`;
+- `scheduled_realization_count`;
+- `accounted_realization_count`;
+- `classification_counts`;
+- `unresolved_realization_ids`;
+- `attempt_evidence_records`;
+- `realization_resolutions`;
+- `completion_status`.
+
+
+`classification_counts` is a JSON object containing exactly:
+
+- `success`;
+- `invalid_geometry`;
+- `mesh_failure`;
+- `fem_failure`;
+- `response_failure`.
+
+All five values are non-negative JSON integers and not Boolean values.
+
+Their sum equals:
+
+`scheduled_realization_count`.
+
+`invalid_design_input` is absent from completion classification counts
+because it is a pre-identity planning failure and prevents creation of the
+pilot plan.
+
+`attempt_evidence_records` contains exactly one entry for every occupied
+attempt directory.
+
+Every entry contains exactly:
+
+- `design_id`;
+- `realization_id`;
+- `realization_index`;
+- `attempt_index`;
+- `attempt_id`;
+- `evidence_kind`;
+- `evidence_sha256`.
+
+`evidence_kind` is exactly one of:
+
+- `artifact_manifest`;
+- `attempt_diagnosis`.
+
+An authenticated committed attempt is represented by the SHA-256 of its
+immutable artifact manifest.
+
+An occupied noncommitted or untrusted attempt is represented by the
+SHA-256 of its immutable attempt-diagnosis record.
+
+One occupied attempt directory has exactly one of those two evidence kinds
+in the completion manifest.
+
+Attempt-evidence records are ordered by:
+
+`pilot_plan design_ids order -> realization_index ascending -> attempt_index ascending`.
+
+The attempt-evidence record count is at least `384` and may exceed `384`
+because append-only retries consume additional attempt indices.
+
+Any occupied attempt directory lacking one authenticated evidence record
+blocks completion.
+
+It may be created only when all 384 scheduled realization identities have
+a terminal authenticated resolution, the unresolved count is zero, and every
+occupied attempt index is represented by exactly one authenticated
+`attempt_evidence_records` entry.
+
+Therefore, in a committed completion manifest:
+
+`unresolved_realization_ids = []`.
+
+Every `realization_resolutions` entry contains exactly:
+
+- `design_id`;
+- `realization_id`;
+- `realization_index`;
+- `resolution_status`;
+- `terminal_attempt_index`;
+- `terminal_attempt_id`;
+- `terminal_attempt_manifest_sha256`;
+- `terminal_top_level_classification`;
+- `failure_adjudication_sha256`.
+
+Resolution-status values are:
+
+- `success`;
+- `adjudicated_failure`.
+
+For success:
+
+`failure_adjudication_sha256 = null`.
+
+For adjudicated failure:
+
+`failure_adjudication_sha256`
+
+is required and authenticates the immutable failure-adjudication record.
+
+Resolution records are ordered by:
+
+`pilot_plan design_ids order -> realization_index 1..8`.
+
+Thus there are exactly 384 ordered resolution slots.
+
+Completion-status values are:
+
+- `complete_all_success`;
+- `complete_with_adjudicated_failures`.
+
+`unresolved` is a runtime accounting state, not a permitted immutable
+completion resolution.
+
+If any realization remains unresolved, the completion manifest must remain
+absent.
+
+A tracked checkpoint created later must authenticate the completed raw
+completion-manifest SHA-256. The Git-ignored raw completion manifest alone
+is not final Git provenance.
+
+### 22.36 Pilot pause and stop conditions
+
+Before starting any new realization, the pilot must pause on:
+
+- repository or authority mismatch;
+- design-ID or seed-identity mismatch;
+- existing output collision or overwrite risk;
+- locked geometry-contract violation;
+- mesh hard-gate failure;
+- PBC/FEM hard-gate failure;
+- response hard-gate failure;
+- non-finite required output;
+- unexpected schema or provenance mismatch;
+- unreadable or unauthenticated existing attempt evidence.
+
+On a realization failure:
+
+1. retain durable evidence;
+2. pause for diagnosis;
+3. do not silently substitute seed or realization;
+4. authorize a retry only under the locked Step-7/Step-8 retry rule.
+
+Pilot evidence accounting can be called complete only after all 384
+scheduled realization identities receive terminal authenticated resolution.
+
+Evidence accounting completion is not automatically a scientific PASS.
+
+There is no failure-rate acceptance threshold.
+
+M10 remains blocked by any unresolved realization or unadjudicated contract
+failure.
+
+### 22.37 Step-8 closure interpretation
+
+The final locked Step-8 design is:
+
+- sampling architecture:
+  `hybrid_pristine_independent_4D_LHS__defective_distance_guarded_sliced_5D_LHS`;
+- `12` physical design points per stratum;
+- `48` physical design points total;
+- `8` stochastic realizations per physical design point;
+- `384` scheduled stochastic realization identities;
+- no sampling-value quantization;
+- explicit domain-separated `PCG64` sampling RNG;
+- custom exact sliced defective constructor;
+- custom distance-guarded coordinate-swap optimizer with 2000 proposals;
+- append-only immutable raw evidence;
+- exact per-realization hard-gate inheritance;
+- descriptive Student-t repeat reporting without invented stochastic
+  acceptance thresholds.
+
+No production sampling stream was consumed in selecting or validating this
+contract.
+
+No production LHS point, physical design value, design ID, stochastic
+realization, execution attempt, or M9 raw production directory was created
+by the pre-lock diagnostic work.
+
+**Next scientific gate: M9 Step 9 — Targeted Transfer-Validation.**
+
+The stochastic M9 pilot remains **NOT AUTHORIZED**.
+
+---
+
+## 23. Machine-learning authorization boundary
 
 M9 is not an ML-training milestone.
 
@@ -2214,9 +3955,9 @@ QC/provenance gates are formally closed.
 
 ---
 
-## 23. Current checkpoint
+## 24. Current checkpoint
 
-At creation of this document:
+At the current authenticated checkpoint:
 
 - M0-M8:
   `100% COMPLETE / CLOSED`
@@ -2243,16 +3984,22 @@ At creation of this document:
 - M9 Step 7:
   `PASS / CONCEPTUALLY COMPLETE`
 - M9 Step 8:
-  `NOT STARTED`
+  `PASS / CONCEPTUALLY COMPLETE`
+- M9 Step 9:
+  `NEXT`
+- stochastic M9 pilot:
+  `NOT AUTHORIZED`
 - approximate M9 milestone progress:
-  `57%`
+  `~64%`
 
 The percentage is an approximate milestone-progress indicator, not a
-mathematically exact project-completion measure.
+mathematically exact project-completion measure. The milestone still
+includes targeted transfer-validation, formal pilot authorization, and the
+later stochastic-pilot execution/evidence cycle.
 
 ---
 
-## 24. Documentation and provenance policy
+## 25. Documentation and provenance policy
 
 This M9 record is intended to be Git-tracked.
 

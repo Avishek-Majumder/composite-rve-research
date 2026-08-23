@@ -6,7 +6,7 @@
 **Current completed major milestone:** M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
 **Current active major milestone:** M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset
 **M8 implementation status:** 100% COMPLETE
-**M9 implementation status:** IN PROGRESS — Steps 1-7 complete; Step 8 next
+**M9 implementation status:** IN PROGRESS — Steps 1-8 design/QC gates complete; Step 9 next
 **M9 design authority:** `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`
 **Authoritative post-M5 roadmap:** `docs/Secondary_Planning.docx`
 
@@ -39,7 +39,7 @@ The original Project 01 planning remains the historical initial scope. The post-
 | M6        | 100% COMPLETE | Multiple/Random-Particle Microstructure Foundation                                     |
 | M7        | 100% COMPLETE | Circular Void Defects and Defect-Sensitive Response Definition                         |
 | M8        | 100% COMPLETE | RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification |
-| M9        | IN PROGRESS   | Final Parameter-Space Lock and Stochastic Pilot Dataset — Steps 1-7 complete           |
+| M9        | IN PROGRESS   | Final Parameter-Space Lock and Stochastic Pilot Dataset — Steps 1-8 design/QC gates complete; Step 9 next |
 | M10       | NOT STARTED   | Main Quality-Controlled FEM Simulation Database                                        |
 | M11       | NOT STARTED   | Baseline Machine-Learning Models and Grouped Validation                                |
 | M12       | NOT STARTED   | Active Learning versus Random Sampling                                                 |
@@ -98,7 +98,7 @@ M9 Steps 1-3B are closed at their current scope:
 - Step 3A: final model-output architecture conceptually locked;
 - Step 3B: final model-input architecture conceptually locked.
 
-The six core numerical input domains are locked under M9 Step 4. M9 Step 5 locked the material-scale, normalization, and reference-anchor policy. M9 Step 6 locked the principal periodic geometry, pair-clearance, finite-placement, and stage-aware failure/QC policy. M9 Step 7 has now locked deterministic design/realization identity, seed derivation, RNG stream separation, replay provenance, non-overwrite, and retry semantics. M9 Step 8 — Pilot Design and QC Lock — is next.
+The six core numerical input domains are locked under M9 Step 4. M9 Step 5 locked the material-scale, normalization, and reference-anchor policy. M9 Step 6 locked the principal periodic geometry, pair-clearance, finite-placement, and stage-aware failure/QC policy. M9 Step 7 locked deterministic design/realization identity, seed derivation, RNG stream separation, replay provenance, non-overwrite, and retry semantics. M9 Step 8 has now locked the stochastic-pilot sampling design, exact repeated-realization count, sampling RNG/canonicalization contract, raw-evidence schema/layout, per-realization QC gates, and pilot stop/retry conditions. M9 Step 9 — Targeted Transfer-Validation — is next.
 
 No stochastic M9 pilot, M10 production database generation, or
 machine-learning training is authorized at this checkpoint.
@@ -897,7 +897,8 @@ Current scientific state:
 - **M9 Step 5:** material and normalization lock PASS / conceptually complete.
 - **M9 Step 6:** geometry, defect, feasibility, and failure-taxonomy lock PASS / conceptually complete.
 - **M9 Step 7:** stochastic reproducibility policy PASS / conceptually complete.
-- **M9 Step 8:** NOT STARTED.
+- **M9 Step 8:** pilot design and QC lock PASS / conceptually complete.
+- **M9 Step 9:** NEXT — Targeted Transfer-Validation.
 - **Final numerical M9 parameter ranges:** LOCKED.
 - **Stochastic M9 pilot:** NOT AUTHORIZED.
 - **M10 production FEM database:** NOT AUTHORIZED.
@@ -909,7 +910,7 @@ Permanent M9 design authority:
 
 The immediate next scientific gate is:
 
-> **M9 Step 8 — Pilot Design and QC Lock**
+> **M9 Step 9 — Targeted Transfer-Validation**
 
 M9 Step 5 has locked the following material/normalization policy:
 
@@ -1072,16 +1073,36 @@ An authorized retry preserves the same scientific realization identity and
 applicable seeds, preserves the prior attempt, and creates append-only new
 execution-attempt provenance.
 
-Step 8 retains the final repeated-realization count, pilot sample size,
-sampling strategy, any explicit sampling precision/quantization policy, exact
-raw field names, directory/filename layout, final record schema, QC thresholds,
-and stop conditions.
+M9 Step 8 is now `PASS / CONCEPTUALLY COMPLETE`.
+
+The locked Step-8 pilot contract uses:
+
+- pilot namespace `composite-rve-m9-pilot-v1`;
+- sampling namespace `composite-rve-m9-pilot-sampling-v1`;
+- one independent pristine four-dimensional plain-LHS branch;
+- three defective void-count slices `N1`, `N2`, and `N4` built as one
+  exact sliced five-dimensional LHS;
+- `12` physical design points per stratum;
+- `48` physical design points total;
+- exactly `8` stochastic realizations per physical design point;
+- `384` scheduled stochastic realization identities;
+- no sampling-value rounding, quantization, or grid snapping;
+- deterministic, domain-separated `PCG64` sampling/optimizer streams;
+- an append-only, non-overwriting raw-evidence contract under
+  `results/raw/05_m9_stochastic_pilot`;
+- retained Step-6 geometry rules and Step-7 realization/seed/retry
+  semantics;
+- no hard stochastic CI-width, CV, or failure-rate acceptance threshold.
+
+The exact sampling-construction, optimizer, raw-schema, provenance,
+per-realization hard-gate, retry, completion, and crash-durability
+details are permanently recorded in
+`docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`.
 
 M9 must still complete:
 
-1. pilot-design and QC lock;
-2. targeted transfer-validation;
-3. formal pilot authorization.
+1. targeted transfer-validation;
+2. formal stochastic-pilot authorization.
 
 The stochastic M9 pilot remains NOT AUTHORIZED.
 
