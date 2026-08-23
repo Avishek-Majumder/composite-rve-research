@@ -3986,7 +3986,7 @@ At the current authenticated checkpoint:
 - M9 Step 8:
   `PASS / CONCEPTUALLY COMPLETE`
 - M9 Step 9:
-  `IN PROGRESS — protocol/case/identity/validation-seed lock complete; implementation and execution not yet started`
+  `IN PROGRESS — protocol/case/identity/validation-seed and implementation-boundary topology locks complete; source creation and scientific execution not yet started`
 - stochastic M9 pilot:
   `NOT AUTHORIZED`
 - approximate M9 milestone progress:
@@ -4476,6 +4476,275 @@ At this documentation lock:
 - M10: NOT AUTHORIZED;
 - machine-learning training: NOT AUTHORIZED.
 
-The next Step-9 action after independent audit and durable Git closure of
-this documentation lock is an explicitly scoped implementation-boundary
-design for the Step-9 validation adaptation.
+The Step-9 implementation-boundary topology and non-production evidence
+root are locked in Section 26.10. Source creation and scientific execution
+remain unauthorized at this checkpoint.
+
+### 26.10 Step-9 implementation topology and evidence-root lock
+
+**IMPLEMENTATION TOPOLOGY / EVIDENCE ROOT LOCKED — SOURCE CREATION NOT YET STARTED**
+
+The permanent non-production Step-9 transfer-validation evidence root is:
+
+`results/raw/06_m9_step9_transfer_validation`
+
+This root is exclusively for targeted Step-9 validation evidence.
+
+It is deliberately distinct from the reserved stochastic-pilot production
+root:
+
+`results/raw/05_m9_stochastic_pilot`
+
+The production stochastic-pilot root must remain absent throughout Step-9.
+
+Step-9 validation evidence must not create or impersonate:
+
+- production pilot `design_id` values;
+- production stochastic `realization_id` values;
+- production pilot-sampling RNG identities;
+- production pilot attempt identities;
+- M10 production records.
+
+The Step-9 transfer-case identity and validation-seed namespaces locked in
+Sections 26.2-26.4 remain the only Step-9 scientific identity authority.
+
+#### 26.10.1 Protected source reuse
+
+The following authenticated M8 sources remain protected and unchanged:
+
+- `src/20_generate_m8_periodized_microstructure.py`;
+- `src/21_generate_m8_periodized_mesh.py`;
+- `src/22_solve_m8_periodized_pbc.py`;
+- `src/26_m8_local_response.py`.
+
+Their Step-9 roles are limited to validated implementation reuse:
+
+- `src/20` remains the particle-geometry generator for both pristine and
+  defective Step-9 cases;
+- `src/21` remains the pristine particle-mesh generator;
+- `src/22` remains the pristine PBC mechanics solver because it already
+  accepts runtime material configuration;
+- `src/26` remains the permanent local-response numerical kernel used by the
+  defective Step-9 solver.
+
+These sources retain their M8 schemas and provenance.
+
+Reuse in Step 9 does not silently relabel their source bytes or native output
+schemas as M9 production sources.
+
+#### 26.10.2 New Step-9 defective geometry source
+
+The reserved path is:
+
+`src/28_generate_m9_step9_void_microstructure.py`
+
+Its responsibility is exactly one Step-9 defective physical void state.
+
+It must be lineage-adapted from the authenticated geometry mechanism in
+`src/23_generate_m8_periodized_void_microstructure.py` while removing the
+M8-only paired `baseline/high_severity` state construction.
+
+It must support the locked Step-9 defective multiplicities:
+
+`void_count in {1, 2, 4}`.
+
+It must accept the exact physical void radius associated with the selected
+Step-9 physical case rather than constructing a paired severity family.
+
+It must preserve:
+
+- authenticated source particle geometry;
+- the Step-9 particle/void validation seeds;
+- explicit `Generator(PCG64(seed))`;
+- toroidal/minimum-image placement;
+- `g_pv = 0.020`;
+- `g_vv = 0.020`;
+- `max_attempts_per_void = 20000`;
+- external-boundary crossing permission;
+- no rerun-until-convenient semantics;
+- deterministic geometry provenance.
+
+The reserved Step-9 defective geometry schema is:
+
+`m9_step9_void_microstructure_v1`.
+
+This is Step-9 validation evidence, not a production-pilot geometry schema.
+
+#### 26.10.3 New Step-9 defective mesh source
+
+The reserved path is:
+
+`src/29_generate_m9_step9_void_mesh.py`
+
+It must be lineage-adapted from the authenticated CAD/mesh mechanism in:
+
+`src/24_generate_m8_periodized_void_mesh.py`.
+
+Its responsibility is to mesh one authenticated Step-9 defective geometry
+state at one explicitly requested mesh size.
+
+It must remove the M8-only assumptions that:
+
+- the state selector is limited to `baseline/high_severity`;
+- every selected state contains exactly four physical voids.
+
+It must support the locked Step-9 multiplicities `1`, `2`, and `4` while
+preserving the validated true-hole periodic CAD construction, physical tags,
+periodic representation checks, material-area accounting, mesh diagnostics,
+and no-overwrite behavior.
+
+The reserved Step-9 defective mesh-diagnostics schema is:
+
+`m9_step9_void_mesh_diagnostics_v1`.
+
+#### 26.10.4 New Step-9 defective PBC source
+
+The reserved path is:
+
+`src/30_solve_m9_step9_void_pbc.py`
+
+It must be lineage-adapted from the authenticated numerical mechanism in:
+
+`src/25_solve_m8_periodized_void_pbc.py`.
+
+It must preserve the validated:
+
+- periodic MPC construction;
+- deterministic gauge;
+- heterogeneous plane-stress FEM formulation;
+- PETSc solve/convergence auditing;
+- periodic-field checks;
+- constrained algebraic residual check;
+- homogenized-stress recovery;
+- requested-load positive-stiffness check;
+- Hill-Mandel consistency check;
+- X/Y/XY load semantics;
+- X-load quadrature local-response path;
+- call to the permanent `src/26` quadrature metric;
+- exact `abs(Sigma_11)` local normalization;
+- non-overwrite semantics.
+
+The M8-only exact material assertions:
+
+- `E_matrix = 1000`;
+- `E_particle = 10000`;
+- `nu_matrix = 0.30`;
+- `nu_particle = 0.25`;
+- `Ep_over_Em = 10`;
+
+must not be copied as Step-9 acceptance restrictions.
+
+The Step-9 material contract is instead:
+
+- `E_matrix = 1000` as the locked internal reference scale;
+- `E_particle = Ep_over_Em * E_matrix`;
+- `Ep_over_Em in [2, 30]`;
+- `nu_matrix in [0.25, 0.40]`;
+- `nu_particle in [0.15, 0.30]`;
+- 2D plane stress;
+- perfect bonding.
+
+The reserved per-load Step-9 defective mechanics schema is:
+
+`m9_step9_void_pbc_load_validation_v1`.
+
+#### 26.10.5 Step-9 transfer-case orchestrator
+
+The reserved path is:
+
+`src/31_run_m9_step9_transfer_case.py`
+
+This is a Step-9 validation orchestrator only.
+
+It must accept only the six already locked physical transfer cases
+`M9TV-01` through `M9TV-06` and must independently reconstruct/authenticate
+their locked:
+
+- physical inputs;
+- canonical physical-case material;
+- `transfer_case_sha256`;
+- particle validation seed;
+- applicable void validation seed.
+
+It must not generate a production LHS, production design ID, production
+realization ID, or production pilot attempt identity.
+
+For pristine cases its scientific lineage is:
+
+`src/20 -> src/21 -> src/22`.
+
+For defective cases its scientific lineage is:
+
+`src/20 -> src/28 -> src/29 -> src/30`
+
+with permanent local-response evaluation inherited through `src/26`.
+
+For every physical transfer case, one physical geometry is generated once
+and is reused at both:
+
+- `h = 0.02048`;
+- `h = 0.010`.
+
+Geometry or seed regeneration between the paired mesh levels is forbidden.
+
+For each mesh level the orchestrator requires exactly the global load set:
+
+`X, Y, XY`.
+
+For defective cases it additionally requires the permanent quadrature local
+metric from the X-load response at quadrature degree `8`.
+
+#### 26.10.6 Step-9 evidence ownership
+
+The Step-9 raw root is owned by the transfer-validation namespace rather
+than by the later stochastic-pilot namespace.
+
+Each human case label `M9TV-01` through `M9TV-06` owns one case subtree.
+
+The subtree must retain sufficient authenticated evidence to prove:
+
+- physical-case identity;
+- validation seeds;
+- material configuration;
+- particle geometry;
+- applicable defective void geometry;
+- common geometry across the candidate/fine mesh pair;
+- candidate and fine mesh provenance;
+- X/Y/XY global responses at each mesh;
+- defective X-load local response where applicable;
+- hard-gate outcomes;
+- candidate-versus-fine transfer comparison.
+
+Exact final Step-9 leaf filenames and final summary-record field sets remain
+implementation details until the corresponding source is created and
+independently audited.
+
+They must not be silently borrowed from the production Step-8 pilot schema.
+
+#### 26.10.7 Authorization state after this lock
+
+This implementation-boundary lock authorizes only later creation and
+independent audit of explicitly Step-9-scoped source code.
+
+It does not itself authorize execution.
+
+At this checkpoint:
+
+- `src/28`: NOT CREATED;
+- `src/29`: NOT CREATED;
+- `src/30`: NOT CREATED;
+- `src/31`: NOT CREATED;
+- Step-9 raw validation root: NOT CREATED;
+- Step-9 geometry execution: NOT STARTED;
+- Step-9 mesh execution: NOT STARTED;
+- Step-9 FEM execution: NOT STARTED;
+- production stochastic-pilot root: MUST REMAIN ABSENT;
+- stochastic M9 pilot: NOT AUTHORIZED;
+- M10: NOT AUTHORIZED;
+- machine-learning training: NOT AUTHORIZED.
+
+After durable Git closure of this implementation-boundary lock, the next
+implementation action is creation and static audit of
+`src/28_generate_m9_step9_void_microstructure.py` only.
+
+No Step-9 scientific runtime is authorized by that source-creation action.
