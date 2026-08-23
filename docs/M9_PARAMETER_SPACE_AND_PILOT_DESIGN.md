@@ -3986,7 +3986,7 @@ At the current authenticated checkpoint:
 - M9 Step 8:
   `PASS / CONCEPTUALLY COMPLETE`
 - M9 Step 9:
-  `IN PROGRESS — protocol/case/identity/validation-seed and implementation-boundary topology locks complete; source creation and scientific execution not yet started`
+  `IN PROGRESS — protocol/case/identity/validation-seed and implementation-boundary topology locks complete; src/28 creation/static audit/durable Git closure complete; src/29-31 and scientific execution not yet started`
 - stochastic M9 pilot:
   `NOT AUTHORIZED`
 - approximate M9 milestone progress:
@@ -4463,26 +4463,36 @@ while creating explicit Step-9 source/provenance authority.
 
 ### 26.9 Current Step-9 execution state
 
-At this documentation lock:
+At the current synchronized checkpoint after durable `src/28` closure:
 
 - Step-9 case matrix: locked;
 - Step-9 physical-case identity: locked;
 - Step-9 validation seed derivation: locked;
 - Step-9 mesh-pairing policy: locked;
-- Step-9 implementation adaptation: NOT YET CREATED;
+- Step-9 implementation adaptation: PARTIALLY CREATED — `src/28` only;
+- `src/28` defective void generator:
+  CREATED / INDEPENDENTLY STATIC-AUDITED / DURABLY GIT-CLOSED;
+- `src/29` defective mesh source: NOT CREATED;
+- `src/30` defective PBC source: NOT CREATED;
+- `src/31` transfer-case orchestrator: NOT CREATED;
+- Step-9 raw validation root: NOT CREATED;
 - Step-9 geometry execution: NOT STARTED;
+- Step-9 mesh execution: NOT STARTED;
 - Step-9 FEM execution: NOT STARTED;
 - stochastic M9 pilot: NOT AUTHORIZED;
 - M10: NOT AUTHORIZED;
 - machine-learning training: NOT AUTHORIZED.
 
 The Step-9 implementation-boundary topology and non-production evidence
-root are locked in Section 26.10. Source creation and scientific execution
-remain unauthorized at this checkpoint.
+root remain locked in Section 26.10.
+
+Creation and independent static audit of the next explicitly scoped Step-9
+source may proceed only after durable closure of the current documentation
+synchronization. Scientific execution remains unauthorized.
 
 ### 26.10 Step-9 implementation topology and evidence-root lock
 
-**IMPLEMENTATION TOPOLOGY / EVIDENCE ROOT LOCKED — SOURCE CREATION NOT YET STARTED**
+**IMPLEMENTATION TOPOLOGY / EVIDENCE ROOT LOCKED — LOCK-TIME IMPLEMENTATION STATE**
 
 The permanent non-production Step-9 transfer-validation evidence root is:
 
@@ -4728,9 +4738,10 @@ independent audit of explicitly Step-9-scoped source code.
 
 It does not itself authorize execution.
 
-At this checkpoint:
+At the implementation-boundary lock checkpoint, before `src/28`
+creation:
 
-- `src/28`: NOT CREATED;
+- `src/28`: lock-time pre-creation state;
 - `src/29`: NOT CREATED;
 - `src/30`: NOT CREATED;
 - `src/31`: NOT CREATED;
@@ -4743,8 +4754,79 @@ At this checkpoint:
 - M10: NOT AUTHORIZED;
 - machine-learning training: NOT AUTHORIZED.
 
-After durable Git closure of this implementation-boundary lock, the next
-implementation action is creation and static audit of
-`src/28_generate_m9_step9_void_microstructure.py` only.
+This was the lock-time snapshot. The lock designated creation and independent
+static audit of `src/28_generate_m9_step9_void_microstructure.py` as the first
+implementation action.
 
-No Step-9 scientific runtime is authorized by that source-creation action.
+That `src/28` action has since been completed and durably Git-closed without
+scientific execution. The synchronized current state is recorded in
+Section 26.11.
+
+No Step-9 scientific runtime is authorized merely by source creation.
+
+### 26.11 Post-src28 durable synchronization checkpoint
+
+The first Step-9 implementation source is now durably closed.
+
+Repository authority for this checkpoint is:
+
+`c2d94b4a66ba621dc0cc217ae700381d65579c26`
+
+with commit subject:
+
+`feat: add M9 Step 9 defective void generator`
+
+The committed source is:
+
+`src/28_generate_m9_step9_void_microstructure.py`
+
+with SHA-256:
+
+`20c2d56b734518bf6bf18f867652d562778290e146c47be961e3a416645af160`
+
+The authenticated `src/28` state is:
+
+- lineage-adapted from protected `src/23`;
+- single defective physical-state geometry only;
+- locked defective multiplicities `{1, 2, 4}`;
+- exact requested void radius input;
+- `g_pv = 0.020`;
+- `g_vv = 0.020`;
+- `max_attempts_per_void = 20000`;
+- explicit `Generator(PCG64(void_seed))`;
+- protected particle geometry authenticated and reused;
+- no paired M8 baseline/high-severity construction;
+- no production design identity;
+- no production realization identity;
+- no production pilot-sampling RNG consumption;
+- independently static/lineage audited;
+- committed and pushed to `main`;
+- local `origin/main` and actual GitHub `main` authenticated to the same
+  commit;
+- never scientifically executed at this checkpoint.
+
+Current implementation state is therefore:
+
+- `src/28`: CREATED / STATIC-AUDITED / DURABLY GIT-CLOSED;
+- `src/29`: NOT CREATED;
+- `src/30`: NOT CREATED;
+- `src/31`: NOT CREATED;
+- Step-9 raw validation root: NOT CREATED;
+- production stochastic-pilot raw root: MUST REMAIN ABSENT;
+- Step-9 geometry execution: NOT STARTED;
+- Step-9 mesh execution: NOT STARTED;
+- Step-9 FEM execution: NOT STARTED;
+- stochastic M9 pilot: NOT AUTHORIZED;
+- M10: NOT AUTHORIZED;
+- machine-learning training: NOT AUTHORIZED.
+
+After durable Git closure of this documentation synchronization, the next
+implementation action is creation and independent static audit of:
+
+`src/29_generate_m9_step9_void_mesh.py`
+
+only.
+
+That future source-creation action does not authorize CAD generation, mesh
+generation, geometry execution, FEM execution, stochastic-pilot execution,
+M10 generation, or machine-learning training.
