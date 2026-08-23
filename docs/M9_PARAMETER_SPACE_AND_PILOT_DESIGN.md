@@ -14,7 +14,7 @@
 
 **Closed M9 design gates at this checkpoint:** Steps 1, 2, 3A, 3B, 4, 5, 6, 7, and 8
 
-**Next scientific gate:** Step 9 — Targeted Transfer-Validation
+**Current scientific gate:** Step 9 — Targeted Transfer-Validation
 
 **Stochastic M9 pilot:** NOT AUTHORIZED
 
@@ -2162,7 +2162,7 @@ Step 7 does not authorize:
 M9 Steps 1-8 are complete at their currently authorized scientific-design
 scope.
 
-The next gate is:
+The current active gate is:
 
 #### Step 9 — Targeted transfer-validation
 
@@ -3923,7 +3923,7 @@ No production LHS point, physical design value, design ID, stochastic
 realization, execution attempt, or M9 raw production directory was created
 by the pre-lock diagnostic work.
 
-**Next scientific gate: M9 Step 9 — Targeted Transfer-Validation.**
+**Current active scientific gate: M9 Step 9 — Targeted Transfer-Validation.**
 
 The stochastic M9 pilot remains **NOT AUTHORIZED**.
 
@@ -3986,7 +3986,7 @@ At the current authenticated checkpoint:
 - M9 Step 8:
   `PASS / CONCEPTUALLY COMPLETE`
 - M9 Step 9:
-  `NEXT`
+  `IN PROGRESS — protocol/case/identity/validation-seed lock complete; implementation and execution not yet started`
 - stochastic M9 pilot:
   `NOT AUTHORIZED`
 - approximate M9 milestone progress:
@@ -4018,3 +4018,464 @@ repository decision.
 
 No stochastic realization may be overwritten or cherry-picked because its
 response appears more desirable.
+
+---
+
+## 26. M9 Step 9 — Targeted Transfer-Validation Protocol Lock
+
+### 26.1 Status and authorization boundary
+
+**PROTOCOL / CASE / IDENTITY LOCKED — EXECUTION NOT YET STARTED**
+
+Step 9 deliberately challenges difficult/extreme conditions in the final
+locked M9 physical domain before stochastic-pilot authorization.
+
+This Step-9 protocol lock does **not** authorize:
+
+- stochastic M9 pilot execution;
+- consumption of the production pilot-sampling RNG streams;
+- creation of production M9 `design_id` values;
+- creation of production stochastic `realization_id` values;
+- creation of `results/raw/05_m9_stochastic_pilot`;
+- M10 generation;
+- machine-learning training.
+
+The protected M8 implementation remains validated M8 authority and is not
+silently relabeled as final M9 production source.
+
+### 26.2 Step-9 validation namespaces
+
+The permanent Step-9 physical transfer-case namespace is:
+
+`composite-rve-m9-step9-transfer-case-v1`
+
+The permanent Step-9 validation-seed namespace is:
+
+`composite-rve-m9-step9-transfer-validation-v1`
+
+These namespaces are deliberately distinct from:
+
+- `composite-rve-m9-design-v1`;
+- `composite-rve-m9-stochastic-v1`;
+- `composite-rve-m9-pilot-sampling-v1`;
+- `composite-rve-m9-pilot-v1`.
+
+Step-9 validation identities are not production pilot identities.
+
+### 26.3 Physical transfer-case identity
+
+Each Step-9 transfer case is defined by exactly the six locked physical
+inputs:
+
+1. `Ep_over_Em`;
+2. `nu_matrix`;
+3. `nu_particle`;
+4. `particle_area_fraction_requested`;
+5. `void_area_fraction_requested`;
+6. `void_count`.
+
+The canonical Step-9 physical material is:
+
+`composite-rve-m9-step9-transfer-case-v1|Ep_over_Em=<canonical>|nu_matrix=<canonical>|nu_particle=<canonical>|particle_area_fraction_requested=<canonical>|void_area_fraction_requested=<canonical>|void_count=<canonical>`
+
+Canonical decimal semantics follow the already locked Step-7 rules:
+
+- fixed decimal notation;
+- unnecessary fractional trailing zeros removed;
+- terminal decimal point removed;
+- signed zero collapsed to `0`;
+- no hidden rounding or quantization;
+- finite values only;
+- `void_count` is an exact non-negative decimal integer.
+
+Define:
+
+`transfer_case_sha256 = SHA256(UTF8(canonical_physical_case_material))`.
+
+The human labels:
+
+`M9TV-01` through `M9TV-06`
+
+are metadata only and do **not** enter the physical-case hash.
+
+Mesh size does **not** enter the transfer-case identity.
+
+Therefore the candidate mesh and fine-reference mesh for one case represent
+the same physical case and must reuse the same geometry and Step-9 validation
+seeds.
+
+### 26.4 Step-9 seed derivation
+
+For the particle stream:
+
+`particle_seed_material = composite-rve-m9-step9-transfer-validation-v1|transfer_case_sha256=<full_transfer_case_sha256>|stream=particle`
+
+For an applicable void stream:
+
+`void_seed_material = composite-rve-m9-step9-transfer-validation-v1|transfer_case_sha256=<full_transfer_case_sha256>|stream=void`
+
+For either applicable stream:
+
+`seed_digest = SHA256(UTF8(seed_material))`.
+
+The validation seed integer is the unsigned big-endian integer represented
+by the first 16 digest bytes.
+
+When geometry execution is later authorized, the RNG construction remains:
+
+`Generator(PCG64(seed))`.
+
+A pristine Step-9 case has:
+
+- particle seed applicable;
+- `void_seed_status = not_applicable`;
+- `void_seed = null`;
+- no void-placement RNG invocation.
+
+Step-9 validation seeds are not production stochastic or pilot-sampling
+seeds.
+
+### 26.5 Locked six-case transfer matrix
+
+#### M9TV-01
+
+Purpose:
+low material corner plus lower particle-content boundary.
+
+Physical inputs:
+
+- `Ep_over_Em = 2`;
+- `nu_matrix = 0.25`;
+- `nu_particle = 0.15`;
+- `particle_area_fraction_requested = 0.08`;
+- `void_area_fraction_requested = 0`;
+- `void_count = 0`.
+
+Derived particle radius:
+
+`0.03989422804014327`
+
+Physical-case SHA-256:
+
+`b8f037b23f40b4e3b4f11351bba7eb1e56a74916c4830adeb6bfa540f36e8b68`
+
+Particle seed SHA-256:
+
+`6bca81dddde0cb530392c754f5f19fd77374eedb2e433665d41e71441bd0e9f5`
+
+Particle seed:
+
+`143278873523340767025418018152741183447`
+
+Void seed:
+
+`not_applicable`.
+
+#### M9TV-02
+
+Purpose:
+strong/high-Poisson material corner plus upper particle-content boundary.
+
+Physical inputs:
+
+- `Ep_over_Em = 30`;
+- `nu_matrix = 0.40`;
+- `nu_particle = 0.30`;
+- `particle_area_fraction_requested = 0.20`;
+- `void_area_fraction_requested = 0`;
+- `void_count = 0`.
+
+Derived particle radius:
+
+`0.063078313050504`
+
+Physical-case SHA-256:
+
+`8a731f01d50c9da105d49f54d84199597f95d95256bffe674bfad5da1d4fa874`
+
+Particle seed SHA-256:
+
+`7776a8956d6d4f53e05ac1fb137e00051e468c73dff2e319e1038138b535b040`
+
+Particle seed:
+
+`158794241811387740240800122303890194437`
+
+Void seed:
+
+`not_applicable`.
+
+#### M9TV-03
+
+Purpose:
+smallest locked individual-hole resolution condition.
+
+Physical inputs:
+
+- `Ep_over_Em = 2`;
+- `nu_matrix = 0.40`;
+- `nu_particle = 0.15`;
+- `particle_area_fraction_requested = 0.08`;
+- `void_area_fraction_requested = 0.0075`;
+- `void_count = 4`.
+
+Derived particle radius:
+
+`0.03989422804014327`
+
+Derived void radius:
+
+`0.024430125595145995`
+
+Physical-case SHA-256:
+
+`5178ad415ef8baf3a89cf2073f0e9a84a971d32abedd68fdc6dfd0e2bd3245ee`
+
+Particle seed SHA-256:
+
+`f90aff5ad09e1096878a2a6340b6e743c3cc50d629364d7c132fdc601644836b`
+
+Particle seed:
+
+`331034873128576928746062640963927861059`
+
+Void seed SHA-256:
+
+`c7f37127fa59f259bdf96f66b69658a64ad0f67c8d465f471283a26272b2356d`
+
+Void seed:
+
+`265780394377485763838077729012744345766`
+
+#### M9TV-04
+
+Purpose:
+largest locked single-hole condition at the strong stiffness-contrast corner.
+
+Physical inputs:
+
+- `Ep_over_Em = 30`;
+- `nu_matrix = 0.25`;
+- `nu_particle = 0.30`;
+- `particle_area_fraction_requested = 0.20`;
+- `void_area_fraction_requested = 0.03`;
+- `void_count = 1`.
+
+Derived particle radius:
+
+`0.063078313050504`
+
+Derived void radius:
+
+`0.09772050238058398`
+
+Physical-case SHA-256:
+
+`5fb722b3668181d67657e2928da81c637c31448d89fc932da04a4f09e5cd6ca8`
+
+Particle seed SHA-256:
+
+`7e216bc0fee989d1b52257e368d12fffc48a76fcfd3f0fd9c1d5343fdd345e13`
+
+Particle seed:
+
+`167656258773757365808330988195306090495`
+
+Void seed SHA-256:
+
+`3675e7e9657c66be1e64bcbfdfafef0d685a6ce8e1b09e7c7d80aed9b0654a53`
+
+Void seed:
+
+`72390514233022719310843015955024441101`
+
+#### M9TV-05
+
+Purpose:
+combined high particle fraction, high void fraction, four-hole crowding and
+strong/high-matrix-Poisson material stress condition.
+
+Physical inputs:
+
+- `Ep_over_Em = 30`;
+- `nu_matrix = 0.40`;
+- `nu_particle = 0.15`;
+- `particle_area_fraction_requested = 0.20`;
+- `void_area_fraction_requested = 0.03`;
+- `void_count = 4`.
+
+Derived particle radius:
+
+`0.063078313050504`
+
+Derived void radius:
+
+`0.04886025119029199`
+
+Physical-case SHA-256:
+
+`75ac68b1516dd0ceedccefddc33b10fec7f8d4d9544c9d0aef144dd1d752fbe6`
+
+Particle seed SHA-256:
+
+`05b166bdeb87a19488ab3de5c1b5f92e6ce3d6f03d41f8c452016359346d6ccd`
+
+Particle seed:
+
+`7567260375680476855745945029095848238`
+
+Void seed SHA-256:
+
+`769c19859b70a6b333f816406b9ca112a611490f82cb2215290f3688b0a545af`
+
+Void seed:
+
+`157659419458243575234270926394187620626`
+
+#### M9TV-06
+
+Purpose:
+upper void-fraction boundary with intermediate multiplicity at the lower
+particle-content and low-stiffness corner.
+
+Physical inputs:
+
+- `Ep_over_Em = 2`;
+- `nu_matrix = 0.25`;
+- `nu_particle = 0.30`;
+- `particle_area_fraction_requested = 0.08`;
+- `void_area_fraction_requested = 0.03`;
+- `void_count = 2`.
+
+Derived particle radius:
+
+`0.03989422804014327`
+
+Derived void radius:
+
+`0.06909882989426709`
+
+Physical-case SHA-256:
+
+`7474d99669663326914df9baba5f24e01be8a7cbe0c513be1e34e5a91a84c98e`
+
+Particle seed SHA-256:
+
+`60b46ba2ed89400ec8753e308709eb7d4dcadcc5c351e48acb525e6abfa9c3c2`
+
+Particle seed:
+
+`128542684156191983480558845568121170813`
+
+Void seed SHA-256:
+
+`1c774abbe49176bca349dcc2f5d746c588d5e19f4e8bc534b5df39fb37da5fd3`
+
+Void seed:
+
+`37837782992858786522254068446842537669`
+
+### 26.6 Boundary coverage
+
+The six-case matrix deliberately covers:
+
+- both stiffness-ratio boundaries `2` and `30`;
+- both matrix Poisson-ratio boundaries `0.25` and `0.40`;
+- both particle Poisson-ratio boundaries `0.15` and `0.30`;
+- both particle-area-fraction boundaries `0.08` and `0.20`;
+- pristine response;
+- both defective void-area-fraction boundaries `0.0075` and `0.03`;
+- every locked defective multiplicity `1`, `2`, and `4`;
+- the smallest locked individual hole;
+- the largest locked individual hole;
+- a high-particle/high-void four-hole crowding condition.
+
+This is a targeted transfer set, not a factorial sampling design and not a
+stochastic pilot.
+
+### 26.7 Mesh-pairing and mechanics protocol
+
+Every Step-9 physical case is tested at:
+
+- candidate production mesh size `h = 0.02048`;
+- fine reference mesh size `h = 0.010`.
+
+The same physical case, particle seed, applicable void seed and generated
+physical geometry are retained across the two mesh sizes.
+
+For each mesh level, global homogenization requires the three load cases:
+
+- `X`;
+- `Y`;
+- `XY`.
+
+If all six physical cases reach FEM, the planned total is therefore:
+
+`6 * 2 * 3 = 36`
+
+global load solves.
+
+For defective cases, the permanent local metric remains:
+
+`m8_matrix_vm_annulus_quadrature_tail10_v1`
+
+and the X-load local response is evaluated at quadrature degree:
+
+`8`.
+
+Step-9 validation retains the locked Step-6 geometry authority:
+
+- periodic square cell `L = 1`;
+- physical particle count `16`;
+- minimum-image/toroidal pair-distance policy;
+- boundary crossing permitted;
+- `g_pp = 0.020`;
+- `g_pv = 0.020`;
+- `g_vv = 0.020`;
+- particle placement budget `20000`;
+- void placement budget `20000`;
+- no rerun-until-convenient behavior.
+
+It also retains the Step-8 applicable per-realization hard-gate families,
+including mesh/tag integrity, periodic geometry/MPC integrity, PETSc
+convergence, gauge/periodic-field accuracy, constrained algebraic residual,
+finite response, positive requested load-direction stiffness, Hill-Mandel
+consistency, and defective local-response validity.
+
+### 26.8 M8-to-Step-9 implementation boundary
+
+Protected M8 sources remain unchanged.
+
+The authenticated M8 periodized geometry, mesh, PBC and local-response
+implementations are validation foundations, not silently relabeled M9
+production sources.
+
+The pristine M8 PBC path already accepts runtime material configuration.
+
+The defective M8 PBC path retains M8-reference material assertions and
+therefore requires an explicitly Step-9-scoped adaptation before M9 material
+edge/corner execution.
+
+No protected M8 source shall be modified merely to remove those assertions.
+
+Step-9 implementation must preserve the validated PBC numerical mechanism
+while creating explicit Step-9 source/provenance authority.
+
+### 26.9 Current Step-9 execution state
+
+At this documentation lock:
+
+- Step-9 case matrix: locked;
+- Step-9 physical-case identity: locked;
+- Step-9 validation seed derivation: locked;
+- Step-9 mesh-pairing policy: locked;
+- Step-9 implementation adaptation: NOT YET CREATED;
+- Step-9 geometry execution: NOT STARTED;
+- Step-9 FEM execution: NOT STARTED;
+- stochastic M9 pilot: NOT AUTHORIZED;
+- M10: NOT AUTHORIZED;
+- machine-learning training: NOT AUTHORIZED.
+
+The next Step-9 action after independent audit and durable Git closure of
+this documentation lock is an explicitly scoped implementation-boundary
+design for the Step-9 validation adaptation.
