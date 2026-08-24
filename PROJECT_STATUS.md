@@ -6,7 +6,7 @@
 **Current completed major milestone:** M8 — RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification
 **Current active major milestone:** M9 — Final Parameter-Space Lock and Stochastic Pilot Dataset
 **M8 implementation status:** 100% COMPLETE
-**M9 implementation status:** IN PROGRESS — Steps 1-8 design/QC gates complete; Step 9 in progress — protocol/case/identity/validation-seed and implementation-boundary topology locks complete; src/28 defective-void generator created, independently static-audited, and durably Git-closed; src/29-31 and scientific execution not yet started
+**M9 implementation status:** IN PROGRESS — Steps 1-8 design/QC gates complete; Step 9 in progress — protocol/case/identity/validation-seed and implementation-boundary topology locks complete; src/28 defective-void generator and src/29 defective mesher created, independently static/lineage-audited, and durably Git-closed; src/30-31 and scientific execution not yet started
 **M9 design authority:** `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`
 **Authoritative post-M5 roadmap:** `docs/Secondary_Planning.docx`
 
@@ -39,7 +39,7 @@ The original Project 01 planning remains the historical initial scope. The post-
 | M6        | 100% COMPLETE | Multiple/Random-Particle Microstructure Foundation                                     |
 | M7        | 100% COMPLETE | Circular Void Defects and Defect-Sensitive Response Definition                         |
 | M8        | 100% COMPLETE | RVE-Size Study, Homogenization BC/PBC Verification, and Final Target-Mesh Verification |
-| M9        | IN PROGRESS   | Final Parameter-Space Lock and Stochastic Pilot Dataset — Steps 1-8 design/QC gates complete; Step 9 in progress — protocol/topology locked; src/28 durably closed; src/29-31 and scientific execution not yet started |
+| M9        | IN PROGRESS   | Final Parameter-Space Lock and Stochastic Pilot Dataset — Steps 1-8 design/QC gates complete; Step 9 in progress — protocol/topology locked; src/28-29 durably closed; src/30-31 and scientific execution not yet started |
 | M10       | NOT STARTED   | Main Quality-Controlled FEM Simulation Database                                        |
 | M11       | NOT STARTED   | Baseline Machine-Learning Models and Grouped Validation                                |
 | M12       | NOT STARTED   | Active Learning versus Random Sampling                                                 |
@@ -98,7 +98,7 @@ M9 Steps 1-3B are closed at their current scope:
 - Step 3A: final model-output architecture conceptually locked;
 - Step 3B: final model-input architecture conceptually locked.
 
-The six core numerical input domains are locked under M9 Step 4. M9 Step 5 locked the material-scale, normalization, and reference-anchor policy. M9 Step 6 locked the principal periodic geometry, pair-clearance, finite-placement, and stage-aware failure/QC policy. M9 Step 7 locked deterministic design/realization identity, seed derivation, RNG stream separation, replay provenance, non-overwrite, and retry semantics. M9 Step 8 has now locked the stochastic-pilot sampling design, exact repeated-realization count, sampling RNG/canonicalization contract, raw-evidence schema/layout, per-realization QC gates, and pilot stop/retry conditions. M9 Step 9 — Targeted Transfer-Validation — is now in progress; its six-case protocol, physical-case identity, validation-seed derivation, mesh-pairing policy, implementation topology, and non-production evidence-root boundary are locked. The Step-9 defective-void generator src/28 has now been created, independently static-audited, committed, pushed, and remotely authenticated without scientific execution; src/29-31 and all Step-9 scientific runtime remain unstarted.
+The six core numerical input domains are locked under M9 Step 4. M9 Step 5 locked the material-scale, normalization, and reference-anchor policy. M9 Step 6 locked the principal periodic geometry, pair-clearance, finite-placement, and stage-aware failure/QC policy. M9 Step 7 locked deterministic design/realization identity, seed derivation, RNG stream separation, replay provenance, non-overwrite, and retry semantics. M9 Step 8 has now locked the stochastic-pilot sampling design, exact repeated-realization count, sampling RNG/canonicalization contract, raw-evidence schema/layout, per-realization QC gates, and pilot stop/retry conditions. M9 Step 9 — Targeted Transfer-Validation — is now in progress; its six-case protocol, physical-case identity, validation-seed derivation, mesh-pairing policy, implementation topology, and non-production evidence-root boundary are locked. The Step-9 defective-void generator src/28 and defective true-hole mesher src/29 have now been created, independently static/lineage-audited, committed, pushed, and remotely authenticated without scientific execution; src/30-31 and all Step-9 scientific runtime remain unstarted.
 
 No stochastic M9 pilot, M10 production database generation, or
 machine-learning training is authorized at this checkpoint.
@@ -898,7 +898,7 @@ Current scientific state:
 - **M9 Step 6:** geometry, defect, feasibility, and failure-taxonomy lock PASS / conceptually complete.
 - **M9 Step 7:** stochastic reproducibility policy PASS / conceptually complete.
 - **M9 Step 8:** pilot design and QC lock PASS / conceptually complete.
-- **M9 Step 9:** IN PROGRESS — targeted six-case transfer matrix / physical-case identity / validation-seed protocol / implementation topology / non-production evidence root locked; src/28 defective-void generator durably Git-closed after independent static audit; src/29-31 and scientific execution not yet started.
+- **M9 Step 9:** IN PROGRESS — targeted six-case transfer matrix / physical-case identity / validation-seed protocol / implementation topology / non-production evidence root locked; src/28 defective-void generator and src/29 defective mesher durably Git-closed after independent static/lineage audits; src/30-31 and scientific execution not yet started.
 - **Final numerical M9 parameter ranges:** LOCKED.
 - **Stochastic M9 pilot:** NOT AUTHORIZED.
 - **M10 production FEM database:** NOT AUTHORIZED.
