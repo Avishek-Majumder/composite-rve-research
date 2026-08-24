@@ -3986,7 +3986,7 @@ At the current authenticated checkpoint:
 - M9 Step 8:
   `PASS / CONCEPTUALLY COMPLETE`
 - M9 Step 9:
-  `IN PROGRESS — protocol/case/identity/validation-seed and implementation-boundary topology locks complete; src/28 and src/29 creation/static audits/durable Git closures complete; src/30-31 and scientific execution not yet started`
+  `IN PROGRESS — protocol/case/identity/validation-seed and implementation-boundary topology locks complete; src/28, src/29, and src/30 creation/static audits/durable Git closures complete; src/31 and scientific execution not yet started`
 - stochastic M9 pilot:
   `NOT AUTHORIZED`
 - approximate M9 milestone progress:
@@ -4463,17 +4463,17 @@ while creating explicit Step-9 source/provenance authority.
 
 ### 26.9 Current Step-9 execution state
 
-At the current synchronized checkpoint after durable `src/29` closure:
+At the current synchronized checkpoint after durable `src/30` closure:
 
 - Step-9 case matrix: locked;
 - Step-9 physical-case identity: locked;
 - Step-9 validation seed derivation: locked;
 - Step-9 mesh-pairing policy: locked;
-- Step-9 implementation adaptation: PARTIALLY CREATED — `src/28` and `src/29`;
+- Step-9 implementation adaptation: PARTIALLY CREATED — `src/28`, `src/29`, and `src/30`;
 - `src/28` defective void generator:
   CREATED / INDEPENDENTLY STATIC-AUDITED / DURABLY GIT-CLOSED;
 - `src/29` defective mesh source: CREATED / STATIC-AUDITED / DURABLY GIT-CLOSED;
-- `src/30` defective PBC source: NOT CREATED;
+- `src/30` defective PBC source: CREATED / STATIC-AUDITED / DURABLY GIT-CLOSED;
 - `src/31` transfer-case orchestrator: NOT CREATED;
 - Step-9 raw validation root: NOT CREATED;
 - Step-9 geometry execution: NOT STARTED;
@@ -4835,6 +4835,8 @@ M10 generation, or machine-learning training.
 
 ### 26.12 Post-src29 durable synchronization checkpoint
 
+**HISTORICAL CHECKPOINT — superseded for current implementation state by Section 26.13 after durable `src/30` closure.**
+
 The second Step-9 implementation source is now durably closed.
 
 Repository authority for this checkpoint is:
@@ -4908,4 +4910,109 @@ only.
 That future `src/30` source-creation action does not authorize geometry
 generation, CAD execution, mesh generation, FEM execution, Step-9 raw
 evidence creation, stochastic-pilot execution, M10 generation, or
+machine-learning training.
+
+### 26.13 Post-src30 durable synchronization checkpoint
+
+The third Step-9 implementation source is now durably closed.
+
+Repository authority for this checkpoint is:
+
+`1f5bd2c8373468e5ae269cc8e3132d6eab1e131f`
+
+with commit subject:
+
+`feat: add M9 Step 9 defective void PBC solver`
+
+The committed source is:
+
+`src/30_solve_m9_step9_void_pbc.py`
+
+with SHA-256:
+
+`734d4d2c0df18690d6ea9a81f7f128e5503fa997ce461cfcc6823c6f05df2332`
+
+The authenticated `src/30` state is:
+
+- lineage-adapted from protected
+  `src/25_solve_m8_periodized_void_pbc.py`;
+- retains the protected `src/25` numerical mechanics mechanism, with only
+  the Step-9 interface/provenance control surface adapted;
+- consumes the Step-9 single defective-state geometry schema
+  `m9_step9_void_microstructure_v1`;
+- consumes the Step-9 mesh-diagnostics schema
+  `m9_step9_void_mesh_diagnostics_v1`;
+- emits the reserved Step-9 per-load validation schema
+  `m9_step9_void_pbc_load_validation_v1`;
+- authenticates the durable `src/28` geometry source and durable `src/29`
+  mesher authorities;
+- accepts only the locked defective multiplicities `{1, 2, 4}`;
+- contains no M8 paired-family `baseline/high_severity` state selector;
+- keeps `E_matrix = 1000` as the internal normalization/reference scale;
+- enforces `E_particle = Ep_over_Em * E_matrix`;
+- accepts only `Ep_over_Em in [2, 30]`;
+- accepts only `nu_matrix in [0.25, 0.40]`;
+- accepts only `nu_particle in [0.15, 0.30]`;
+- preserves the 2D plane-stress and perfect-bonding mechanics contract;
+- preserves periodic MPC construction;
+- preserves the deterministic interior gauge;
+- preserves heterogeneous plane-stress UFL formulation;
+- preserves the MPC-aware `LinearProblem` path;
+- preserves PETSc convergence and algebraic-residual auditing;
+- preserves periodic-field consistency checks;
+- preserves homogenized-stress recovery and requested-load stiffness-column
+  evaluation;
+- preserves Hill-Mandel consistency;
+- preserves the permanent `X`, `Y`, and `XY` load semantics;
+- preserves permanent local-response authority through
+  `src/26_m8_local_response.py`;
+- preserves the local metric
+  `m8_matrix_vm_annulus_quadrature_tail10_v1`;
+- requires defective permanent X-load local response at quadrature degree
+  `8`;
+- preserves exact local normalization by `abs(Sigma_11)`;
+- leaves periodic-void representation authentication upstream in `src/29`
+  rather than duplicating that responsibility in the solver;
+- consumes authenticated physical void records for local-response
+  evaluation;
+- preserves exclusive-create permanent-output semantics;
+- creates no production design identity;
+- creates no production realization identity;
+- consumes no production pilot-sampling RNG;
+- owns neither the Step-9 raw-root layout nor the production raw-root
+  layout;
+- independently static/lineage audited;
+- committed and pushed to `main`;
+- local `origin/main` and actual GitHub `main` authenticated to the same
+  commit;
+- never scientifically executed at this checkpoint.
+
+Current implementation state is therefore:
+
+- `src/28`: CREATED / STATIC-AUDITED / DURABLY GIT-CLOSED;
+- `src/29`: CREATED / STATIC-AUDITED / DURABLY GIT-CLOSED;
+- `src/30`: CREATED / STATIC-AUDITED / DURABLY GIT-CLOSED;
+- `src/31`: NOT CREATED;
+- Step-9 raw validation root: NOT CREATED;
+- production stochastic-pilot raw root: MUST REMAIN ABSENT;
+- Step-9 geometry execution: NOT STARTED;
+- Step-9 CAD execution: NOT STARTED;
+- Step-9 mesh execution: NOT STARTED;
+- Step-9 MPC execution: NOT STARTED;
+- Step-9 FEM execution: NOT STARTED;
+- Step-9 local-response execution: NOT STARTED;
+- stochastic M9 pilot: NOT AUTHORIZED;
+- M10: NOT AUTHORIZED;
+- machine-learning training: NOT AUTHORIZED.
+
+After durable Git closure of this documentation synchronization, the next
+implementation action is creation and independent static/lineage audit of:
+
+`src/31_run_m9_step9_transfer_case.py`
+
+only.
+
+That future `src/31` source-creation action does not authorize geometry
+generation, CAD execution, mesh generation, MPC construction, FEM execution,
+Step-9 raw evidence creation, stochastic-pilot execution, M10 generation, or
 machine-learning training.
