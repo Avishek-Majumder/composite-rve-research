@@ -743,3 +743,315 @@ Required next action after this append:
 
 This checkpoint does not authorize scientific execution, staging, commit,
 push, stochastic-pilot execution, M10, or ML training.
+
+---
+
+## 19. Post-src31 staged / commit / push durable closure checkpoint
+
+**Checkpoint date:** 2026-08-26
+
+Following the ledger self-audit checkpoint, the exact src31 closure set was
+independently audited, staged, committed, pushed, and authenticated without
+scientific execution.
+
+The exact closure set was:
+
+- `docs/M9_STEP9_AUDIT_DECISION_LEDGER.md`;
+- `src/31_run_m9_step9_transfer_case.py`.
+
+The closure-set read-only audit passed:
+
+`STEP9_SRC31_LEDGER_CLOSURE_SET_READ_ONLY_AUDIT=PASS`
+
+The exact staging operation then passed:
+
+`STEP9_EXACT_CLOSURE_SET_STAGING=PASS`
+
+Exactly two paths were staged and there were no unstaged changes.
+
+The independent staged-byte and full-cached-diff audit passed:
+
+`STEP9_INDEPENDENT_STAGED_BYTES_FULL_DIFF_AUDIT=PASS`
+
+Authenticated staged file SHA-256 values were:
+
+- ledger:
+  `72b8ef7968bcfecc2cf0a2a535fbdd22bc4e192126e037f8136c955f41c4664c`;
+- src31:
+  `c708200df0d86a1d4ff909e40a2090b2740d9993e35fe6a1f73947fbbf19ca29`.
+
+The authenticated full cached-diff SHA-256 was:
+
+`d1d39fc0b2458ce1dc5b75aa87138ffedba08fb36750c4402b9a0788ade8a4a7`
+
+The exact audited closure-set commit passed:
+
+`STEP9_EXACT_AUDITED_CLOSURE_COMMIT=PASS`
+
+The resulting commit is:
+
+`0484520f3f589f0d0c055f72eec03ee6cc97a342`
+
+with parent:
+
+`19c3b079e1cec6200d8b57be1cf0c6e0edd87e2a`
+
+and subject:
+
+`feat: add M9 Step 9 transfer orchestrator`
+
+The commit contains exactly the two intended additions.
+
+Committed blob SHA-256 values exactly match the previously audited staged
+bytes.
+
+The exact main-branch push then passed:
+
+`STEP9_EXACT_AUDITED_COMMIT_PUSH=PASS`
+
+After the push:
+
+- local `HEAD` =
+  `0484520f3f589f0d0c055f72eec03ee6cc97a342`;
+- local `origin/main` =
+  `0484520f3f589f0d0c055f72eec03ee6cc97a342`;
+- actual GitHub `refs/heads/main` =
+  `0484520f3f589f0d0c055f72eec03ee6cc97a342`;
+- ahead of `origin/main` = `0`;
+- behind `origin/main` = `0`;
+- worktree/index = clean;
+- Step-9 raw validation root = absent;
+- production stochastic-pilot raw root = absent;
+- Step-9 scientific execution = none.
+
+The pushed commit object, parent, subject, ledger blob, and src31 blob were
+independently authenticated after the push.
+
+The subsequent post-src31 durable synchronization read-only audit passed:
+
+`STEP9_POST_SRC31_DURABLE_SYNCHRONIZATION_AUDIT=PASS`
+
+That audit found all three durable status records required synchronization:
+
+- `PROJECT_STATUS.md`;
+- `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`;
+- this audit/decision ledger.
+
+The synchronization requirement is documentation/provenance-only. It does
+not identify a new src31 source defect and does not authorize scientific
+runtime.
+
+Current authorization boundary at this checkpoint:
+
+- src31 static/source closure: **COMPLETE / DURABLY GIT-CLOSED**;
+- audit/decision ledger creation: **COMPLETE / DURABLY GIT-CLOSED at the
+  pre-synchronization checkpoint**;
+- post-src31 documentation synchronization: **REQUIRED**;
+- Step-9 scientific execution: **NOT AUTHORIZED**;
+- stochastic M9 pilot: **NOT AUTHORIZED**;
+- M10: **NOT AUTHORIZED**;
+- ML training: **NOT AUTHORIZED**.
+
+Required next action:
+
+`MINIMAL_POST_SRC31_DOCUMENTATION_SYNCHRONIZATION`
+
+No geometry, CAD, mesh, MPC, FEM, local-response, stochastic-pilot, M10, or
+machine-learning execution is authorized by this checkpoint.
+
+---
+
+## 20. Post-src31 documentation synchronization repair and audit checkpoint
+
+**Checkpoint date:** 2026-08-28
+
+After durable Git closure of `src/31_run_m9_step9_transfer_case.py` and the
+pre-synchronization ledger checkpoint, the required three-document
+post-src31 synchronization was designed, written, diagnosed, repaired, and
+independently re-audited before any staging.
+
+This section closes the temporary provenance gap created because those
+post-Section-19 synchronization events occurred after Section 19 itself had
+already been constructed.
+
+The synchronization design-lock audit passed:
+
+`STEP9_MINIMAL_POST_SRC31_SYNC_DESIGN_LOCK_AUDIT=PASS`
+
+It locked synchronization of exactly:
+
+- `PROJECT_STATUS.md`;
+- `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`;
+- `docs/M9_STEP9_AUDIT_DECISION_LEDGER.md`.
+
+No src31 source change or scientific execution was proposed.
+
+The first exact three-document synchronization write reported:
+
+`STEP9_EXACT_THREE_DOCUMENT_POST_SRC31_SYNC_WRITE=FAIL`
+
+That failure contained two distinct issues:
+
+1. `ONLY_EXACT_THREE_DOCUMENTS_DIRTY` was an over-strict audit-parser defect
+   caused by stripping the leading porcelain status-space from the first Git
+   status line.
+2. `GIT_DIFF_CHECK_PASS` exposed a real formatting defect: one extra blank
+   line at EOF in both the M9 design document and the audit ledger.
+
+The semantic diagnosis passed:
+
+`STEP9_POST_SYNC_FAILURE_SEMANTIC_DIAGNOSIS_AUDIT=PASS`
+
+with classifications:
+
+- exact three-document worktree scope: valid;
+- prior porcelain parser assertion: over-strict;
+- M9 design-document blank line at EOF: real formatting defect;
+- audit-ledger blank line at EOF: real formatting defect;
+- required repair scope: the final EOF byte of those two documentation files
+  only.
+
+The exact two-file EOF formatting repair was then applied. Its command ended
+with:
+
+`STEP9_EXACT_TWO_FILE_EOF_FORMATTING_REPAIR=FAIL`
+
+even though the EOF byte repairs themselves succeeded and `git diff --check`
+passed.
+
+That final failure was subsequently proven to be another audit false
+positive: the audit searched the diff body for the src31 path and mistook
+legitimate documentation references to src31 for a src31 source-file change.
+
+The independent classification passed:
+
+`STEP9_SRC31_DIFF_BODY_FALSE_POSITIVE_CLASSIFICATION_AUDIT=PASS`
+
+and authenticated:
+
+- changed-path authority consisted only of the three documentation files;
+- `src/31_run_m9_step9_transfer_case.py` had no Git diff;
+- src31 SHA-256 remained
+  `c708200df0d86a1d4ff909e40a2090b2740d9993e35fe6a1f73947fbbf19ca29`;
+- the prior failure was an over-strict diff-body substring assertion.
+
+The first independent three-document post-repair synchronization audit then
+reported:
+
+`STEP9_INDEPENDENT_POST_REPAIR_THREE_DOCUMENT_SYNC_AUDIT=FAIL`
+
+because `PROJECT_STATUS.md` still contained older current-state summaries
+saying src31 had not started.
+
+A dedicated diagnosis passed:
+
+`STEP9_PROJECT_STATUS_OLD_SRC31_PHRASE_DIAGNOSIS_AUDIT=PASS`
+
+It established that the stale phrases pre-existed the current synchronization
+patch and were outside the `## 17. Current M9 Gate` block.
+
+Manual semantic review nevertheless determined that those lines were active
+current-project summaries rather than protected historical checkpoints, so
+they required synchronization.
+
+The subsequent actual-line / semantic-fragment patch diagnosis found the real
+documentation gap and proposed modification of exactly three current
+`PROJECT_STATUS.md` records:
+
+- top-level M9 implementation status;
+- M9 milestone-table row;
+- Post-M5 alignment current-state paragraph.
+
+That diagnostic command ended with:
+
+`STEP9_PROJECT_STATUS_ACTUAL_LINE_SEMANTIC_PATCH_DIAGNOSIS_AUDIT=FAIL`
+
+only because its candidate-path audit searched the diff body for another
+document name.
+
+The candidate-path false-positive classification then passed:
+
+`STEP9_PROJECT_STATUS_CANDIDATE_DIFF_FALSE_POSITIVE_CLASSIFICATION_AUDIT=PASS`
+
+and authenticated that the candidate targeted only `PROJECT_STATUS.md`, with
+exactly three changed current-state records and no source, M9-design-document,
+or ledger edit in that candidate.
+
+The exact three-current-record `PROJECT_STATUS.md` synchronization write then
+passed:
+
+`STEP9_PROJECT_STATUS_THREE_CURRENT_RECORD_SYNC_WRITE=PASS`
+
+The resulting `PROJECT_STATUS.md` SHA-256 is:
+
+`bf6604bbb686ea77a61b70cd73b62b7e31fb3c2486215ad5447e88a60d129330`
+
+The synchronized M9 design-document SHA-256 is:
+
+`e6a08f56e178dbb3dd7ef41bab7a8cc0e05845d0a8f432603a37cb71ded01a28`
+
+The pre-Section-20 synchronized ledger SHA-256 is:
+
+`c74625eaf4a68fc1cf089a56cfb094e09bc20c2aea916e12af625584a1c3c0ae`
+
+The repaired src31 source remains unchanged at SHA-256:
+
+`c708200df0d86a1d4ff909e40a2090b2740d9993e35fe6a1f73947fbbf19ca29`
+
+The independent combined three-document post-write synchronization audit
+passed:
+
+`STEP9_INDEPENDENT_COMBINED_THREE_DOCUMENT_POSTWRITE_SYNC_AUDIT=PASS`
+
+That audit authenticated:
+
+- repository branch `main`;
+- local `HEAD`, local `origin/main`, and actual GitHub main all equal
+  `0484520f3f589f0d0c055f72eec03ee6cc97a342`;
+- exactly the three intended documentation files are modified;
+- the Git index remains empty;
+- src31 has no direct Git diff;
+- all three synchronized documents have a single final LF;
+- `git diff --check` passes;
+- current full unstaged three-document diff SHA-256 before this Section-20
+  append is
+  `c4184a0a57c0607ac946759351c709e6d12050d47e4dbf676dcea78c3493c71b`;
+- `PROJECT_STATUS.md` current-state summaries are synchronized;
+- M9 design Section 26.14 is synchronized;
+- ledger Section 19 remains valid;
+- stochastic M9 pilot remains NOT AUTHORIZED;
+- M10 remains NOT AUTHORIZED;
+- machine-learning training remains NOT AUTHORIZED;
+- Step-9 scientific execution remains NOT AUTHORIZED;
+- Step-9 raw validation root remains absent;
+- production stochastic-pilot raw root remains absent.
+
+The same independent audit explicitly identified this Section-20 checkpoint
+as required because ten serious post-Section-19 audit/run events had not yet
+been durably recorded:
+
+`LEDGER_POST_SYNC_CHECKPOINT_REQUIRED=YES`
+
+with classification:
+
+`EXPECTED_SERIOUS_EVENT_PROVENANCE_GAP_BEFORE_FINAL_DOCUMENTATION_CLOSURE`
+
+This was a provenance-timing gap only.
+
+It was not a src31 source defect and not a scientific defect.
+
+After this Section-20 append, the next required workflow remains:
+
+1. independently audit the complete three-document synchronization including
+   this ledger checkpoint;
+2. audit the exact three-document closure set before staging;
+3. stage only the explicitly authenticated three documentation paths;
+4. audit staged names, staged bytes, and full cached diff;
+5. commit only after staged audit PASS;
+6. push only after commit authentication;
+7. authenticate local `HEAD`, local `origin/main`, and actual GitHub main;
+8. keep Step-9 scientific execution separately authorization-gated.
+
+This checkpoint does not authorize geometry generation, CAD, meshing, MPC,
+FEM, local-response execution, stochastic-pilot generation, M10, or
+machine-learning training.

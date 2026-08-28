@@ -3986,7 +3986,7 @@ At the current authenticated checkpoint:
 - M9 Step 8:
   `PASS / CONCEPTUALLY COMPLETE`
 - M9 Step 9:
-  `IN PROGRESS — protocol/case/identity/validation-seed and implementation-boundary topology locks complete; src/28, src/29, and src/30 creation/static audits/durable Git closures complete; src/31 and scientific execution not yet started`
+  `IN PROGRESS — protocol/case/identity/validation-seed and implementation-boundary topology locks complete; src/28, src/29, src/30, and src/31 creation/static audits/durable Git closures complete; Step-9 scientific execution not yet started`
 - stochastic M9 pilot:
   `NOT AUTHORIZED`
 - approximate M9 milestone progress:
@@ -4914,6 +4914,8 @@ machine-learning training.
 
 ### 26.13 Post-src30 durable synchronization checkpoint
 
+**HISTORICAL CHECKPOINT — superseded for current implementation state by Section 26.14 after durable `src/31` closure.**
+
 The third Step-9 implementation source is now durably closed.
 
 Repository authority for this checkpoint is:
@@ -5016,3 +5018,113 @@ That future `src/31` source-creation action does not authorize geometry
 generation, CAD execution, mesh generation, MPC construction, FEM execution,
 Step-9 raw evidence creation, stochastic-pilot execution, M10 generation, or
 machine-learning training.
+
+### 26.14 Post-src31 durable synchronization checkpoint
+
+The fourth Step-9 implementation source and its tracked audit/decision ledger
+are now durably Git-closed.
+
+Repository authority for this checkpoint is:
+
+`0484520f3f589f0d0c055f72eec03ee6cc97a342`
+
+with commit subject:
+
+`feat: add M9 Step 9 transfer orchestrator`
+
+The committed Step-9 transfer-case orchestrator is:
+
+`src/31_run_m9_step9_transfer_case.py`
+
+with SHA-256:
+
+`c708200df0d86a1d4ff909e40a2090b2740d9993e35fe6a1f73947fbbf19ca29`
+
+The committed tracked Step-9 audit/decision ledger is:
+
+`docs/M9_STEP9_AUDIT_DECISION_LEDGER.md`
+
+with SHA-256:
+
+`72b8ef7968bcfecc2cf0a2a535fbdd22bc4e192126e037f8136c955f41c4664c`
+
+The exact pre-commit staged closure-set diff was independently authenticated
+with SHA-256:
+
+`d1d39fc0b2458ce1dc5b75aa87138ffedba08fb36750c4402b9a0788ade8a4a7`
+
+The durable src31 closure sequence authenticated:
+
+- exact six-case `M9TV-01` through `M9TV-06` physical-case reconstruction;
+- canonical transfer-case hashing and domain-separated validation-seed
+  derivation;
+- one physical particle geometry per transfer case and one defective void
+  geometry per applicable defective case;
+- exact geometry reuse across candidate `h = 0.02048` and fine `h = 0.010`
+  meshes;
+- pristine lineage `src/20 -> src/21 -> src/22`;
+- defective lineage `src/20 -> src/28 -> src/29 -> src/30`;
+- isolated protected-src21 runtime adaptation without protected-source
+  mutation;
+- case-local authenticated runtime material configuration;
+- permanent `X`, `Y`, and `XY` mechanics responses;
+- full unsymmetrized `Cbar / E_matrix` reconstruction;
+- defective X-load `K_vm_tail10` local response at quadrature degree `8`;
+- candidate/fine signed and absolute differences with no invented relative-
+  difference denominator;
+- no inherited M8 `1%`, `3%`, or `5%` transfer threshold;
+- no production LHS, design ID, realization ID, attempt ID, or production RNG
+  ownership;
+- exclusive Step-9 validation-evidence boundaries and retained failed-child
+  evidence;
+- explicit contract-only versus `--execute` scientific-runtime separation.
+
+Independent src31 auditing found one real source defect before closure:
+per-load child-result schema identity was not explicitly authenticated by the
+orchestrator.
+
+The authorized minimal repair added exact authentication of:
+
+- pristine per-load schema
+  `m8_periodized_particle_pbc_load_validation_v1`;
+- defective per-load schema
+  `m9_step9_void_pbc_load_validation_v1`.
+
+The repaired src31 source then passed the independent post-patch static audit.
+
+The staged closure set contained exactly:
+
+- `src/31_run_m9_step9_transfer_case.py`;
+- `docs/M9_STEP9_AUDIT_DECISION_LEDGER.md`.
+
+The staged bytes, Git index blobs, full cached diff, commit contents, committed
+blob bytes, fast-forward push, local `HEAD`, local `origin/main`, and actual
+GitHub `main` were independently authenticated.
+
+Current implementation state is therefore:
+
+- `src/28`: CREATED / STATIC-AUDITED / DURABLY GIT-CLOSED;
+- `src/29`: CREATED / STATIC-AUDITED / DURABLY GIT-CLOSED;
+- `src/30`: CREATED / STATIC-AUDITED / DURABLY GIT-CLOSED;
+- `src/31`: CREATED / STATIC-AUDITED / REPAIRED / DURABLY GIT-CLOSED;
+- Step-9 implementation-source construction: COMPLETE;
+- Step-9 raw validation root: NOT CREATED;
+- production stochastic-pilot raw root: MUST REMAIN ABSENT;
+- Step-9 geometry execution: NOT STARTED;
+- Step-9 CAD execution: NOT STARTED;
+- Step-9 mesh execution: NOT STARTED;
+- Step-9 MPC execution: NOT STARTED;
+- Step-9 FEM execution: NOT STARTED;
+- Step-9 local-response execution: NOT STARTED;
+- targeted transfer-validation scientific execution: NOT AUTHORIZED;
+- stochastic M9 pilot: NOT AUTHORIZED;
+- M10: NOT AUTHORIZED;
+- machine-learning training: NOT AUTHORIZED.
+
+Source creation and durable Git closure do not authorize Step-9 scientific
+runtime.
+
+The next scientific action must begin with a separate authenticated
+Step-9 scientific-runtime authorization/preflight gate. No geometry, CAD,
+mesh, MPC, FEM, local-response, stochastic-pilot, M10, or ML execution may
+begin merely because src31 is now durably closed.
