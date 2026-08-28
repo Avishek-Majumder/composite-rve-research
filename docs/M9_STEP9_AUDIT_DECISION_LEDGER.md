@@ -1055,3 +1055,128 @@ After this Section-20 append, the next required workflow remains:
 This checkpoint does not authorize geometry generation, CAD, meshing, MPC,
 FEM, local-response execution, stochastic-pilot generation, M10, or
 machine-learning training.
+
+---
+
+## 21. Durable post-src31 documentation commit / push checkpoint
+
+**Checkpoint date:** 2026-08-28
+
+The completed post-src31 three-document synchronization closure set has now
+been committed, pushed to `main`, and independently authenticated without any
+Step-9 scientific execution.
+
+The exact synchronized documentation closure set was:
+
+- `PROJECT_STATUS.md`;
+- `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`;
+- `docs/M9_STEP9_AUDIT_DECISION_LEDGER.md`.
+
+Before commit, the exact three-document staging/index audit passed:
+
+`STEP9_STAGE_EXACT_THREE_DOCUMENT_CLOSURE_SET_INDEX_AUDIT=PASS`
+
+The authenticated staged full cached-diff SHA-256 was:
+
+`ab3212757b29601e6bfc63de9556d0b3b6bddd80a3578e76ace70197b3b9f044`
+
+The exact audited documentation synchronization commit then passed:
+
+`STEP9_EXACT_THREE_DOCUMENT_SYNC_COMMIT=PASS`
+
+The resulting commit is:
+
+`99affb0046935cbf5d51096fff2d4eed0ff7d171`
+
+with parent:
+
+`0484520f3f589f0d0c055f72eec03ee6cc97a342`
+
+and subject:
+
+`docs: sync M9 Step 9 post-src31 closure state`
+
+The commit modified exactly the three intended tracked documentation paths.
+
+Committed document SHA-256 values were:
+
+- `PROJECT_STATUS.md`:
+  `bf6604bbb686ea77a61b70cd73b62b7e31fb3c2486215ad5447e88a60d129330`;
+- `docs/M9_PARAMETER_SPACE_AND_PILOT_DESIGN.md`:
+  `e6a08f56e178dbb3dd7ef41bab7a8cc0e05845d0a8f432603a37cb71ded01a28`;
+- `docs/M9_STEP9_AUDIT_DECISION_LEDGER.md`:
+  `b39b830e28585b7be8f768b949d71fad812385fbb7c3ab393795f2815f0b732b`.
+
+The repaired Step-9 transfer orchestrator remained byte-identical:
+
+`src/31_run_m9_step9_transfer_case.py`
+
+SHA-256:
+
+`c708200df0d86a1d4ff909e40a2090b2740d9993e35fe6a1f73947fbbf19ca29`
+
+No src31 source edit was included in the synchronization commit.
+
+The exact main-branch push subsequently passed:
+
+`STEP9_EXACT_THREE_DOCUMENT_SYNC_COMMIT_PUSH=PASS`
+
+The push advanced remote `main` from:
+
+`0484520f3f589f0d0c055f72eec03ee6cc97a342`
+
+to:
+
+`99affb0046935cbf5d51096fff2d4eed0ff7d171`
+
+without force.
+
+Post-push authentication established:
+
+- local `HEAD` =
+  `99affb0046935cbf5d51096fff2d4eed0ff7d171`;
+- local `origin/main` =
+  `99affb0046935cbf5d51096fff2d4eed0ff7d171`;
+- actual GitHub `refs/heads/main` =
+  `99affb0046935cbf5d51096fff2d4eed0ff7d171`;
+- local ahead count = `0`;
+- local behind count = `0`;
+- worktree/index = clean.
+
+The pushed commit object, parent, subject, and all three pushed document blobs
+were independently authenticated after the push.
+
+Current durable implementation/documentation state is therefore:
+
+- `src/28`: DURABLY GIT-CLOSED;
+- `src/29`: DURABLY GIT-CLOSED;
+- `src/30`: DURABLY GIT-CLOSED;
+- `src/31`: CREATED / STATIC-AUDITED / REPAIRED / DURABLY GIT-CLOSED;
+- Step-9 implementation-source construction: COMPLETE;
+- post-src31 documentation synchronization: COMMITTED / PUSHED /
+  DURABLY AUTHENTICATED;
+- Step-9 raw transfer-validation root: ABSENT;
+- production stochastic-pilot raw root: ABSENT;
+- Step-9 scientific execution: NONE;
+- stochastic M9 pilot: NOT AUTHORIZED;
+- M10: NOT AUTHORIZED;
+- machine-learning training: NOT AUTHORIZED.
+
+This checkpoint records Git/documentation durability only.
+
+It does not authorize geometry generation, CAD execution, mesh generation,
+periodic MPC construction, FEM execution, local-response execution,
+stochastic-pilot execution, M10 production generation, or machine-learning
+training.
+
+Required next workflow:
+
+1. independently audit this Section-21 ledger append and current repository
+   provenance;
+2. if that audit passes, treat the ledger-only change as the exact next
+   documentation closure set;
+3. stage only the ledger after explicit staged-boundary authorization;
+4. audit staged ledger bytes and diff;
+5. commit and push only after those audits pass;
+6. only after durable ledger closure may a separate Step-9
+   scientific-runtime authorization/preflight be considered.
